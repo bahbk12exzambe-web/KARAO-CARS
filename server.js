@@ -6,25 +6,29 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// رمز الحماية السري للإدارة (يمكنك تغييره من هنا)
+const ADMIN_SECRET_KEY = process.env.ADMIN_KEY || '2026';
+
 app.use(cors());
 app.use(express.json());
 
-// قراءة الملفات من المجلد الرئيسي ومن مجلد public
+// خدمة الملفات الثابتة
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
-// عند فتح الرابط الرئيسي يرسل ملف index.html فوراً
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// قاعدة البيانات SQLite السحابية
-const db = new sqlite3.Database('./cars_database.sqlite', (err) => {
-  if (err) {
-    console.error('❌ خطأ في قاعدة البيانات:', err);
+// وسيط (Middleware) لحماية عمليات التعديل والحذف والإضافة
+function requireAdmin(req, res, next) {
+  const adminKey = req.headers['x-admin-key'];
+  if (adminKey === ADMIN_SECRET_KEY) {
+    next();
   } else {
-    console.log('✅ تم الاتصال بقاعدة البيانات بنجاح.');
+    res.status(403).json({ error: 'غير مصرح لك بإجراء هذه العملية! يرجى تسجيل دخول الإدارة.' });
   }
+}
+
+// الاتصال بقاعدة البيانات
+const db = new sqlite3.Database('./cars_database.sqlite', (err) => {
+  if (!err) console.log('✅ تم الاتصال بقاعدة البيانات.');
 });
 
 // إنشاء الجداول
@@ -62,8 +66,9 @@ db.serialize(() => {
   `);
 });
 
-// ==================== [ API Routes ] ==================== //
+// ==================== [ المسارات العامة (متاحة للجميع) ] ==================== //
 
+// جلب السيارات (متاح للزبائن والإدارة)
 app.get('/api/cars', (req, res) => {
   const { search } = req.query;
   let query = `SELECT * FROM cars ORDER BY id DESC`;
@@ -89,7 +94,35 @@ app.get('/api/cars', (req, res) => {
   });
 });
 
-app.post('/api/cars', (req, res) => {
+// التحقق من رمز الإدارة
+app.post('/api/admin/verify', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_SECRET_KEY) {
+    res.json({ success: true, message: 'تم تسجيل دخول الإدارة بنجاح' });
+  } else {
+    res.status(401).json({ success: false, error: 'رمز المرور غير صحيح!' });
+  }
+});
+
+// الإحصائيات
+app.get('/api/stats', (req, res) => {
+  db.get(`
+    SELECT 
+      COUNT(*) as total_cars,
+      SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available_cars,
+      SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold_cars,
+      SUM(car_price) as total_value
+    FROM cars
+  `, [], (err, row) => {
+    if (err) return res.status(500).json({ error: 'فشل في جلب الإحصائيات' });
+    res.json({ stats: row });
+  });
+});
+
+// ==================== [ مسارات الإدارة المحمية بكلمة المرور ] ==================== //
+
+// إضافة سيارة (محمي)
+app.post('/api/cars', requireAdmin, (req, res) => {
   const { plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes } = req.body;
   const query = `
     INSERT INTO cars (plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes)
@@ -101,7 +134,8 @@ app.post('/api/cars', (req, res) => {
   });
 });
 
-app.put('/api/cars/:id', (req, res) => {
+// تعديل سيارة (محمي)
+app.put('/api/cars/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   const { plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes, status } = req.body;
   const query = `
@@ -115,7 +149,8 @@ app.put('/api/cars/:id', (req, res) => {
   });
 });
 
-app.delete('/api/cars/:id', (req, res) => {
+// حذف سيارة (محمي)
+app.delete('/api/cars/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   db.run(`DELETE FROM cars WHERE id = ?`, [id], function(err) {
     if (err) return res.status(500).json({ error: 'فشل في الحذف' });
@@ -123,7 +158,8 @@ app.delete('/api/cars/:id', (req, res) => {
   });
 });
 
-app.post('/api/invoices', (req, res) => {
+// حفظ فاتورة (محمي)
+app.post('/api/invoices', requireAdmin, (req, res) => {
   const { invoice_no, type, car_id, client_name, client_phone, total_price, payment_method } = req.body;
   const query = `
     INSERT INTO invoices (invoice_no, type, car_id, client_name, client_phone, total_price, payment_method)
@@ -138,20 +174,11 @@ app.post('/api/invoices', (req, res) => {
   });
 });
 
-app.get('/api/stats', (req, res) => {
-  db.get(`
-    SELECT 
-      COUNT(*) as total_cars,
-      SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available_cars,
-      SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold_cars,
-      SUM(car_price) as total_value
-    FROM cars
-  `, [], (err, row) => {
-    if (err) return res.status(500).json({ error: 'فشل في الإحصائيات' });
-    res.json({ stats: row });
-  });
+// فتح الواجهة
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 السيرفر يعمل بنجاح على المنفذ: ${PORT}`);
+  console.log(`🚀 السيرفر يعمل على المنفذ: ${PORT}`);
 });
