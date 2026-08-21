@@ -22,7 +22,7 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding: 12px; }
-    .container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+    .container { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
 
     .header {
       background: var(--surface); padding: 16px; border-radius: 14px; border: 1px solid var(--border);
@@ -35,14 +35,12 @@
     .header-title p { font-size: 11px; color: var(--text-muted); }
 
     .header-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-
     .lang-switcher { display: flex; background: #e2e8f0; padding: 2px; border-radius: 8px; }
     .lang-btn { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; background: transparent; color: #475569; }
     .lang-btn.active { background: var(--primary); color: #ffffff; }
 
     .btn-admin-auth { background: #0f172a; color: white; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
     .btn-admin-auth.logged { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
-
     .btn-account-settings { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 11px; padding: 7px 10px; border-radius: 8px; font-weight: bold; display: none; }
     body.is-admin .btn-account-settings { display: inline-flex; }
 
@@ -67,23 +65,53 @@
     .search-box { flex: 1; }
     .search-box input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; background: #fff; }
 
-    .cars-list { display: flex; flex-direction: column; gap: 12px; }
-    .car-card { background: var(--surface); border-radius: 14px; border: 1px solid var(--border); padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 10px; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
-    .car-title-badge { font-size: 16px; font-weight: 900; color: #1e3a8a; }
-    .car-plate-badge { background: #0f172a; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 6px; }
+    /* بطاقة السيارة مع الصورة وتنسيق جنب بعض وورا بعض */
+    .cars-list { display: flex; flex-direction: column; gap: 14px; }
+    .car-card {
+      background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
+      overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.04); display: flex; flex-direction: column;
+    }
 
-    .card-specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc; padding: 10px; border-radius: 10px; }
-    .spec-item { display: flex; flex-direction: column; gap: 2px; }
-    .spec-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
-    .spec-value { font-size: 13px; font-weight: 700; color: #1e293b; }
-    .vin-box { grid-column: span 2; background: #fff; padding: 6px 8px; border-radius: 6px; border: 1px dashed #cbd5e1; font-family: monospace; font-size: 12px; font-weight: bold; text-align: center; }
+    .car-image-container {
+      width: 100%; height: 210px; background: #e2e8f0; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .car-img { width: 100%; height: 100%; object-fit: cover; }
+    .car-no-img { font-size: 48px; color: #94a3b8; }
 
-    .card-notes-box { font-size: 12px; color: #334155; background: #f1f5f9; padding: 8px 10px; border-radius: 8px; border-right: 3px solid var(--primary); }
+    .car-card-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    .card-header-line {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
+      border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;
+    }
+    .car-title-badge { font-size: 17px; font-weight: 900; color: #1e3a8a; }
+    .car-plate-badge { background: #0f172a; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 6px; }
+
+    /* مصفوفة المواصفات (جنب بعض) */
+    .specs-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc;
+      padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9;
+    }
+    .spec-box { display: flex; flex-direction: column; gap: 2px; }
+    .spec-lbl { font-size: 10px; color: var(--text-muted); font-weight: 700; }
+    .spec-val { font-size: 13px; font-weight: 800; color: #1e293b; }
+
+    .vin-box {
+      grid-column: span 2; background: #fff; padding: 6px 10px; border-radius: 6px;
+      border: 1px dashed #cbd5e1; font-family: monospace; font-size: 12px; font-weight: bold; text-align: center; color: #334155;
+    }
+
+    .card-notes-box {
+      font-size: 12px; color: #334155; background: #f1f5f9; padding: 8px 10px;
+      border-radius: 8px; border-right: 3px solid var(--primary);
+    }
     html[dir="ltr"] .card-notes-box { border-right: none; border-left: 3px solid var(--primary); }
-    .card-actions { display: none; grid-template-columns: 2fr 1fr 1fr; gap: 6px; }
+
+    .card-actions { display: none; grid-template-columns: 2fr 1fr 1fr; gap: 6px; margin-top: 4px; }
     .empty-state { text-align: center; padding: 35px 20px; background: #fff; border-radius: 14px; color: var(--text-muted); font-size: 13px; }
 
+    /* النوافذ المنبثقة */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; padding: 12px; z-index: 1000; }
     .modal-overlay.active { display: flex; }
     .modal { background: white; border-radius: 16px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
@@ -92,6 +120,12 @@
     .form-group label { font-size: 12px; font-weight: bold; color: #475569; }
     .form-group select, .form-group input, .form-group textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
     .live-translate-hint { font-size: 11px; color: var(--purple); background: #faf5ff; padding: 6px 8px; border-radius: 6px; margin-top: 4px; }
+
+    .image-preview-box {
+      width: 100%; height: 130px; border-radius: 8px; background: #f8fafc; border: 2px dashed #cbd5e1;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; margin-top: 4px;
+    }
+    .image-preview-box img { width: 100%; height: 100%; object-fit: cover; }
 
     #invoicePrintArea { display: none; }
     @media print {
@@ -124,13 +158,12 @@
             <button class="lang-btn active" id="btnLangAr" onclick="setLanguage('ar')">🇸🇾 عربي</button>
             <button class="lang-btn" id="btnLangKu" onclick="setLanguage('ku')">☀️ Kurdî</button>
           </div>
-          <!-- أزرار الإدارة -->
           <button id="btnAccountSettings" class="btn-account-settings" onclick="openAccountSettingsModal()">⚙️ تعديل الحساب</button>
           <button id="btnAdminAuth" class="btn-admin-auth" onclick="handleAdminAuthClick()">🔐 دخول الإدارة</button>
         </div>
       </div>
 
-      <!-- الإحصائيات -->
+      <!-- إحصائيات المعرض -->
       <div class="stats-bar">
         <div class="stat-box">
           <div class="stat-val" id="statTotal">0</div>
@@ -148,7 +181,7 @@
 
       <!-- أزرار الإدارة -->
       <div class="btn-grid admin-grid">
-        <button class="btn-primary" onclick="openModal()" id="btnAddCar">➕ إضافة سيارة</button>
+        <button class="btn-primary" onclick="openModal()" id="btnAddCar">➕ إضافة سيارة مع صورة</button>
         <button class="btn-success" onclick="exportToExcel()" id="btnExportExcel">📊 تصدير Excel</button>
       </div>
     </div>
@@ -160,12 +193,12 @@
       </div>
     </div>
 
-    <!-- قائمة البطاقات -->
+    <!-- قائمة البطاقات المنظمة -->
     <div id="carsContainer" class="cars-list"></div>
     <div id="emptyMessage" class="empty-state" style="display: none;"></div>
   </div>
 
-  <!-- نافذة تسجيل الدخول بالبريد الإلكتروني -->
+  <!-- نافذة تسجيل الدخول -->
   <div id="authModal" class="modal-overlay">
     <div class="modal" style="max-width: 380px;">
       <div class="modal-header">
@@ -190,14 +223,13 @@
     </div>
   </div>
 
-  <!-- نافذة تعديل بيانات الحساب (البريد وكلمة المرور) -->
+  <!-- نافذة تعديل الحساب -->
   <div id="accountModal" class="modal-overlay">
     <div class="modal" style="max-width: 380px;">
       <div class="modal-header">
         <h2 style="font-size: 16px;">⚙️ تعديل بيانات حساب الإدارة</h2>
         <button class="btn-secondary" style="padding: 4px 10px;" onclick="closeAccountModal()">✕</button>
       </div>
-      
       <form onsubmit="submitAccountUpdate(event)">
         <div class="form-group">
           <label>البريد الإلكتروني للإدارة *</label>
@@ -211,7 +243,6 @@
           <label>كلمة المرور الجديدة (اختياري)</label>
           <input type="password" id="accNewPwdInput" placeholder="اتركها فارغة إذا لا تريد تغييرها" minlength="4" />
         </div>
-
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;">
           <button type="button" class="btn-secondary" onclick="closeAccountModal()">إلغاء</button>
           <button type="submit" class="btn-primary">💾 حفظ التعديلات</button>
@@ -220,7 +251,7 @@
     </div>
   </div>
 
-  <!-- نافذة إضافة / تعديل السيارة -->
+  <!-- نافذة إضافة / تعديل السيارة مع الصورة -->
   <div id="carModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -230,6 +261,16 @@
       
       <form id="carForm" onsubmit="saveCarOnline(event)">
         <input type="hidden" id="carIndex" value="-1" />
+        <input type="hidden" id="carImageData" value="" />
+
+        <!-- اختيار ورفع صورة السيارة -->
+        <div class="form-group">
+          <label>📸 صورة السيارة (من الكاميرا أو المعرض)</label>
+          <input type="file" id="carImageInput" accept="image/*" onchange="handleImageSelection(event)" />
+          <div id="imagePreviewBox" class="image-preview-box">
+            <span style="font-size: 12px; color: #94a3b8;">لم يتم اختيار صورة بعد</span>
+          </div>
+        </div>
 
         <div class="form-group">
           <label id="lblCarName">اسم الشركة المصنعة *</label>
@@ -445,7 +486,6 @@
         <h2 id="invModalTitle" style="font-size: 16px; font-weight: bold;">🖨️ إصدار فاتورة - شركة بشار فواز كرعو وشركاه</h2>
         <button class="btn-secondary" style="padding: 4px 10px;" onclick="closeInvoiceModal()">✕</button>
       </div>
-
       <div class="form-group">
         <label id="lblInvType">نوع الفاتورة:</label>
         <select id="invType">
@@ -453,17 +493,14 @@
           <option value="buy">فاتورة شراء سيارة (Kirîn)</option>
         </select>
       </div>
-
       <div class="form-group">
         <label id="lblClientName">اسم الطرف الثاني (العميل):</label>
         <input type="text" id="clientName" placeholder="الاسم الكامل..." />
       </div>
-
       <div class="form-group">
         <label id="lblClientPhone">رقم هاتف العميل:</label>
         <input type="text" id="clientPhone" placeholder="09XXXXXXXX" />
       </div>
-
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
         <div class="form-group">
           <label id="lblFinalPrice">السعر الإجمالي ($):</label>
@@ -478,7 +515,6 @@
           </select>
         </div>
       </div>
-
       <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
         <button type="button" class="btn-secondary" onclick="closeInvoiceModal()" id="btnInvCancel">إغلاق</button>
         <button type="button" class="btn-primary" onclick="printAndSaveInvoiceOnline()" id="btnInvPrint">🖨️ طباعة الفاتورة</button>
@@ -500,7 +536,6 @@
           <div style="font-size: 11px;" id="printInvDate">2026-08-21</div>
         </div>
       </div>
-
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
         <div style="border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; font-size: 12px;">
           <strong id="printLblParty1">الطرف الأول (الشركة):</strong>
@@ -513,7 +548,6 @@
           <p><span id="printClientPhoneLabel">الهاتف:</span> <span id="printClientPhone">-</span></p>
         </div>
       </div>
-
       <table class="inv-tbl">
         <thead>
           <tr>
@@ -536,18 +570,14 @@
           </tr>
         </tbody>
       </table>
-
       <div id="pInvoiceNotes" style="font-size: 11px; color: #334155; background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0;"></div>
-
       <div style="font-size: 16px; font-weight: bold; margin: 15px 0; padding: 10px; background: #eff6ff; border-radius: 8px;">
         <span id="printTotalLabel">المبلغ الإجمالي المتفق عليه:</span>
         <span id="printTotalPrice" style="color: #2563eb; font-size: 20px; margin: 0 8px;">$0</span>
       </div>
-
       <div id="printTermsText" style="font-size: 10px; color: #64748b; margin-bottom: 25px; line-height: 1.5;">
         <strong>إقرار وشروط:</strong> أقر أنا الطرف المذكور أعلاه بمعاينة السيارة الموضحة بياناتها أعلاه وفحصها فحصًا تامًا، وتمت العملية بالتراضي بين الطرفين.
       </div>
-
       <div style="display: flex; justify-content: space-between; margin-top: 30px; border-top: 1px dashed #94a3b8; padding-top: 15px; font-size: 12px;">
         <div style="text-align: center; width: 45%;">
           <p><strong id="printSig1Label">توقيع وختم الشركة</strong></p>
@@ -578,6 +608,20 @@
         opt.innerText = y;
         select.appendChild(opt);
       }
+    }
+
+    // قراءة الصورة وتحويلها لـ Base64
+    function handleImageSelection(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const base64Data = evt.target.result;
+        document.getElementById('carImageData').value = base64Data;
+        document.getElementById('imagePreviewBox').innerHTML = `<img src="${base64Data}" alt="معاينة" />`;
+      };
+      reader.readAsDataURL(file);
     }
 
     const AUTO_TRANSLATE_DB = [
@@ -651,7 +695,7 @@
       ar: {
         appTitle: "شركة بشار فواز كرعو وشركاه",
         appDesc: "معرض وسجل السيارات وفواتير البيع والشراء",
-        addCar: "➕ إضافة سيارة",
+        addCar: "➕ إضافة سيارة مع صورة",
         exportExcel: "📊 تصدير Excel",
         searchPlaceholder: "🔍 ابحث بالاسم، الموديل (H100, H1, فان)، الشاصي، اللوحة...",
         lblStatTotal: "إجمالي المعروض",
@@ -729,8 +773,6 @@
       renderCarsList(loadedCarsList);
     }
 
-    // ==================== [ الصلاحيات والمصادقة بالبريد الإلكتروني ] ==================== //
-
     function updateAdminUI() {
       const btn = document.getElementById('btnAdminAuth');
       if (loggedAdminEmail) {
@@ -759,9 +801,7 @@
       }
     }
 
-    function closeAuthModal() {
-      document.getElementById('authModal').classList.remove('active');
-    }
+    function closeAuthModal() { document.getElementById('authModal').classList.remove('active'); }
 
     async function submitEmailLogin(e) {
       e.preventDefault();
@@ -798,9 +838,7 @@
       document.getElementById('accountModal').classList.add('active');
     }
 
-    function closeAccountModal() {
-      document.getElementById('accountModal').classList.remove('active');
-    }
+    function closeAccountModal() { document.getElementById('accountModal').classList.remove('active'); }
 
     async function submitAccountUpdate(e) {
       e.preventDefault();
@@ -832,11 +870,7 @@
       }
     }
 
-    function getAdminHeader() {
-      return { 'x-admin-token': loggedAdminEmail };
-    }
-
-    // ==================== [ جلب وعرض السيارات ] ==================== //
+    function getAdminHeader() { return { 'x-admin-token': loggedAdminEmail }; }
 
     async function loadOnlineCars() {
       const search = document.getElementById('searchInput').value.trim();
@@ -847,9 +881,7 @@
         loadedCarsList = data.cars || [];
         renderCarsList(loadedCarsList);
         loadStats();
-      } catch (err) {
-        console.error('فشل في جلب البيانات:', err);
-      }
+      } catch (err) {}
     }
 
     async function loadStats() {
@@ -864,6 +896,7 @@
       } catch (err) {}
     }
 
+    /* عرض البطاقات مع الصور والمواصفات جنب بعض وورا بعض */
     function renderCarsList(cars) {
       const t = translations[currentLang];
       const container = document.getElementById('carsContainer');
@@ -891,43 +924,57 @@
         const card = document.createElement('div');
         card.className = 'car-card';
         card.innerHTML = `
-          <div class="card-header">
-            <div class="car-title-badge">
-              ${displayCarName} - ${displayCarModel}
-              ${isSold ? `<span style="font-size: 11px; background: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">مباعة / Firotî</span>` : ''}
-            </div>
-            <div class="car-plate-badge">${displayPlate}</div>
+          <!-- صورة السيارة في الأعلى -->
+          <div class="car-image-container">
+            ${c.car_image 
+              ? `<img src="${c.car_image}" class="car-img" alt="${displayCarName}" />` 
+              : `<div class="car-no-img">🚗</div>`
+            }
           </div>
 
-          <div class="card-specs-grid">
-            <div class="spec-item">
-              <span class="spec-label">${t.lblYear}</span>
-              <span class="spec-value">${c.car_year}</span>
+          <div class="car-card-body">
+            <!-- العنوان واللوحة -->
+            <div class="card-header-line">
+              <div class="car-title-badge">
+                ${displayCarName} - ${displayCarModel}
+                ${isSold ? `<span style="font-size: 11px; background: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">مباعة / Firotî</span>` : ''}
+              </div>
+              <div class="car-plate-badge">${displayPlate}</div>
             </div>
-            <div class="spec-item">
-              <span class="spec-label">${t.lblColor}</span>
-              <span class="spec-value">${displayCarColor || '-'}</span>
-            </div>
-            <div class="spec-item">
-              <span class="spec-label">${t.lblPrice}</span>
-              <span class="spec-value" style="color: #10b981;">${c.car_price ? '$' + Number(c.car_price).toLocaleString() : '-'}</span>
-            </div>
-            <div class="spec-item">
-              <span class="spec-label">${t.lblDate}</span>
-              <span class="spec-value">${c.car_date || '-'}</span>
-            </div>
-            <div class="vin-box">
-              <span class="spec-label" style="display: block; margin-bottom: 2px;">${t.lblVIN}</span>
-              ${c.chassis_number}
-            </div>
-          </div>
 
-          ${displayNotes ? `<div class="card-notes-box">📝 <strong>${currentLang === 'ku' ? 'Têbînî: ' : 'ملاحظات: '}</strong>${displayNotes}</div>` : ''}
+            <!-- مصفوفة المواصفات (جنب بعض وورا بعض) -->
+            <div class="specs-grid">
+              <div class="spec-box">
+                <span class="spec-lbl">${t.lblYear}</span>
+                <span class="spec-val">${c.car_year}</span>
+              </div>
+              <div class="spec-box">
+                <span class="spec-lbl">${t.lblColor}</span>
+                <span class="spec-val">${displayCarColor || '-'}</span>
+              </div>
+              <div class="spec-box">
+                <span class="spec-lbl">${t.lblPrice}</span>
+                <span class="spec-val" style="color: #10b981;">${c.car_price ? '$' + Number(c.car_price).toLocaleString() : '-'}</span>
+              </div>
+              <div class="spec-box">
+                <span class="spec-lbl">${t.lblDate}</span>
+                <span class="spec-val">${c.car_date || '-'}</span>
+              </div>
+              <div class="vin-box">
+                <span class="spec-lbl" style="display: block; margin-bottom: 2px;">${t.lblVIN}</span>
+                ${c.chassis_number}
+              </div>
+            </div>
 
-          <div class="card-actions admin-grid">
-            <button class="btn-invoice" onclick="openInvoiceModal(${c.id})">${t.btnInvoice}</button>
-            <button class="btn-secondary" onclick="editCarOnline(${c.id})">${t.btnEdit}</button>
-            <button class="btn-danger" onclick="deleteCarOnline(${c.id})">${t.btnDelete}</button>
+            <!-- الملاحظات المترجمة -->
+            ${displayNotes ? `<div class="card-notes-box">📝 <strong>${currentLang === 'ku' ? 'Têbînî: ' : 'ملاحظات: '}</strong>${displayNotes}</div>` : ''}
+
+            <!-- أزرار التحكم (للإدارة فقط) -->
+            <div class="card-actions admin-grid">
+              <button class="btn-invoice" onclick="openInvoiceModal(${c.id})">${t.btnInvoice}</button>
+              <button class="btn-secondary" onclick="editCarOnline(${c.id})">${t.btnEdit}</button>
+              <button class="btn-danger" onclick="deleteCarOnline(${c.id})">${t.btnDelete}</button>
+            </div>
           </div>
         `;
         container.appendChild(card);
@@ -938,15 +985,15 @@
       const t = translations[currentLang];
       document.getElementById('carForm').reset();
       document.getElementById('carIndex').value = '-1';
+      document.getElementById('carImageData').value = '';
+      document.getElementById('imagePreviewBox').innerHTML = '<span style="font-size: 12px; color: #94a3b8;">لم يتم اختيار صورة بعد</span>';
       document.getElementById('notesLivePreview').style.display = 'none';
       document.getElementById('modalTitle').innerText = t.modalAddTitle;
       document.getElementById('carDate').value = new Date().toISOString().split('T')[0];
       document.getElementById('carModal').classList.add('active');
     }
 
-    function closeModal() {
-      document.getElementById('carModal').classList.remove('active');
-    }
+    function closeModal() { document.getElementById('carModal').classList.remove('active'); }
 
     async function saveCarOnline(e) {
       e.preventDefault();
@@ -965,7 +1012,8 @@
         car_color: document.getElementById('carColor').value,
         car_date: document.getElementById('carDate').value,
         car_price: Number(document.getElementById('carPrice').value) || 0,
-        car_notes: document.getElementById('carNotes').value.trim()
+        car_notes: document.getElementById('carNotes').value.trim(),
+        car_image: document.getElementById('carImageData').value
       };
 
       try {
@@ -981,7 +1029,7 @@
           closeModal();
           loadOnlineCars();
         } else {
-          alert('فشل الحفظ: يرجى تسجيل الدخول بالبريد الإلكتروني للإدارة أولاً!');
+          alert('فشل الحفظ: يرجى تسجيل الدخول بحساب الإدارة أولاً!');
         }
       } catch (err) {
         alert('حدث خطأ في الاتصال بالسيرفر!');
@@ -1009,6 +1057,13 @@
       document.getElementById('carDate').value = car.car_date || '';
       document.getElementById('carPrice').value = car.car_price || '';
       document.getElementById('carNotes').value = car.car_notes || '';
+      document.getElementById('carImageData').value = car.car_image || '';
+
+      if (car.car_image) {
+        document.getElementById('imagePreviewBox').innerHTML = `<img src="${car.car_image}" alt="معاينة" />`;
+      } else {
+        document.getElementById('imagePreviewBox').innerHTML = '<span style="font-size: 12px; color: #94a3b8;">لا توجد صورة حالية</span>';
+      }
 
       updateNotesLivePreview();
       document.getElementById('modalTitle').innerText = translations[currentLang].modalEditTitle;
@@ -1040,9 +1095,7 @@
       document.getElementById('invoiceModal').classList.add('active');
     }
 
-    function closeInvoiceModal() {
-      document.getElementById('invoiceModal').classList.remove('active');
-    }
+    function closeInvoiceModal() { document.getElementById('invoiceModal').classList.remove('active'); }
 
     async function printAndSaveInvoiceOnline() {
       if (!currentSelectedCar) return;
