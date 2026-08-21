@@ -50,15 +50,13 @@
     .stat-val { font-size: 16px; font-weight: 900; color: var(--primary); }
     .stat-lbl { font-size: 10px; color: var(--text-muted); font-weight: bold; }
 
-    /* شريط تصفية الحالة السريعة */
+    /* شريط تصفية الحالة */
     .filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
     .filter-tab-btn {
       padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; border: 1px solid var(--border);
       background: #fff; color: #475569; cursor: pointer; white-space: nowrap; transition: all 0.2s;
     }
-    .filter-tab-btn.active {
-      background: #1e3a8a; color: #fff; border-color: #1e3a8a;
-    }
+    .filter-tab-btn.active { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
 
     .admin-only { display: none !important; }
     body.is-admin .admin-only { display: inline-flex !important; }
@@ -76,7 +74,7 @@
     .search-box { flex: 1; }
     .search-box input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; background: #fff; }
 
-    /* بطاقة السيارة مع شارات الحالة */
+    /* بطاقات عرض السيارات */
     .cars-list { display: flex; flex-direction: column; gap: 14px; }
     .car-card {
       background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
@@ -92,7 +90,6 @@
     .main-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s; }
     .main-img-box:hover img { transform: scale(1.02); }
 
-    /* شارات الحالة الأنيقة */
     .status-badge-overlay {
       position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 8px;
       font-size: 12px; font-weight: 900; display: flex; align-items: center; gap: 5px;
@@ -246,27 +243,27 @@
       </div>
     </div>
 
-    <!-- شريط البحث السريع -->
+    <!-- شريط البحث -->
     <div class="toolbar">
       <div class="search-box">
         <input type="text" id="searchInput" oninput="loadOnlineCars()" placeholder="🔍 ابحث بالاسم، الموديل (H100, H1, فان)، الشاصي، اللوحة..." />
       </div>
     </div>
 
-    <!-- أزرار تصفية حالة السيارة -->
+    <!-- شريط تصفية الحالة -->
     <div class="filter-tabs">
-      <button class="filter-tab-btn active" id="tabAll" onclick="setStatusFilter('all')">عرض الكل (Hemû)</button>
-      <button class="filter-tab-btn" id="tabAvailable" onclick="setStatusFilter('available')">🟢 متوفرة للبيع (Berdest)</button>
-      <button class="filter-tab-btn" id="tabSold" onclick="setStatusFilter('sold')">🔴 تم البيع بنجاح (Firotî)</button>
-      <button class="filter-tab-btn" id="tabReserved" onclick="setStatusFilter('reserved')">🟡 محجوزة (Rezerv)</button>
+      <button class="filter-tab-btn active" id="tabAll" onclick="setStatusFilter('all')">عرض الكل</button>
+      <button class="filter-tab-btn" id="tabAvailable" onclick="setStatusFilter('available')">🟢 متوفرة للبيع</button>
+      <button class="filter-tab-btn" id="tabSold" onclick="setStatusFilter('sold')">🔴 تم البيع بنجاح</button>
+      <button class="filter-tab-btn" id="tabReserved" onclick="setStatusFilter('reserved')">🟡 محجوزة</button>
     </div>
 
-    <!-- قائمة البطاقات المنظمة -->
+    <!-- قائمة البطاقات -->
     <div id="carsContainer" class="cars-list"></div>
     <div id="emptyMessage" class="empty-state" style="display: none;"></div>
   </div>
 
-  <!-- نافذة تكبير الصور ملء الشاشة (Lightbox) -->
+  <!-- تكبير الصور (Lightbox) -->
   <div id="lightboxModal" onclick="closeLightbox(event)">
     <button class="lightbox-btn lb-close" onclick="closeLightboxDirect()">✕</button>
     <button class="lightbox-btn lb-prev" onclick="prevLightboxImage(event)">❮</button>
@@ -329,7 +326,7 @@
     </div>
   </div>
 
-  <!-- نافذة إضافة / تعديل السيارة مع حالة السيارة -->
+  <!-- نافذة إضافة / تعديل السيارة مع القوائم المنسدلة الذكية المرتبطة -->
   <div id="carModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -357,112 +354,19 @@
           </select>
         </div>
 
+        <!-- شركة السيارة (القائمة الأولى) -->
         <div class="form-group">
           <label id="lblCarName">اسم الشركة المصنعة *</label>
-          <select id="carName" required>
-            <option value="هيونداي">هيونداي - Hyundai</option>
-            <option value="كيا">كيا - Kia</option>
-            <option value="تويوتا">تويوتا - Toyota</option>
-            <option value="نيسان">نيسان - Nissan</option>
-            <option value="ميتسوبيشي">ميتسوبيشي - Mitsubishi</option>
-            <option value="سوزوكي">سوزوكي - Suzuki</option>
-            <option value="مازدا">مازدا - Mazda</option>
-            <option value="مرسيدس">مرسيدس - Mercedes</option>
-            <option value="بي ام دبليو">بي ام دبليو - BMW</option>
-            <option value="فولكس فاجن">فولكس فاجن - Volkswagen</option>
-            <option value="أوبل">أوبل - Opel</option>
-            <option value="رينو">رينو - Renault</option>
-            <option value="بيجو">بيجو - Peugeot</option>
-            <option value="سكودا">سكودا - Skoda</option>
-            <option value="شيفروليه">شيفروليه - Chevrolet</option>
-            <option value="دايو">دايو - Daewoo</option>
-            <option value="فورد">فورد - Ford</option>
-            <option value="جيب">جيب - Jeep</option>
-            <option value="لاند روفر">لاند روفر - Land Rover</option>
-            <option value="لكزس">لكزس - Lexus</option>
-            <option value="شانجان">شانجان - Changan</option>
-            <option value="شيري">شيري - Chery</option>
-            <option value="إم جي">إم جي - MG</option>
-            <option value="جيلي">جيلي - Geely</option>
-            <option value="هافال">هافال - Haval</option>
-            <option value="دودج">دودج - Dodge</option>
-            <option value="جمس">جمس - GMC</option>
+          <select id="carName" onchange="updateModelsDropdown()" required>
+            <!-- سيتم ملء الشركات بالـ JS -->
           </select>
         </div>
 
+        <!-- موديل وفئة السيارة (القائمة الذكية المرتبطة تلقائيًا بالشركة) -->
         <div class="form-group">
           <label id="lblModel">نوع الموديل / الفئة *</label>
           <select id="carModel" required>
-            <optgroup label="🚚 الفانات والشاحنات والبيك أب">
-              <option value="اتش 100">اتش 100 - H100 (بيك أب / انتر)</option>
-              <option value="اتش 1">اتش 1 - H1 (فان / سرفيس)</option>
-              <option value="فان">فان - Van (بضائع / ركاب)</option>
-              <option value="بورتير">بورتير - Porter (بيك أب)</option>
-              <option value="ك 2700">كيا 2700 - K2700 (بيك أب)</option>
-              <option value="ك 2500">كيا 2500 - K2500 (بيك أب)</option>
-              <option value="بونغو">بونغو - Bongo (بيك أب)</option>
-              <option value="هايلوكس">هايلوكس - Hilux (بيك أب)</option>
-              <option value="هايس">هايس - Hiace (سرفيس / فان)</option>
-              <option value="كرنفال">كرنفال - Carnival (فان عائلي)</option>
-              <option value="سوزوكي كاري">سوزوكي كاري - Suzuki Carry</option>
-              <option value="ميتسوبيشي L200">ميتسوبيشي L200 - Pickup</option>
-              <option value="كانتر">كانتر - Canter (شاحنة)</option>
-              <option value="بيك أب عام">بيك أب عام - Pîkap</option>
-            </optgroup>
-
-            <optgroup label="🚗 سيارات سياحية وسيدان دارجة">
-              <option value="أفانتي">أفانتي - Avante (إلنترا)</option>
-              <option value="إلنترا">إلنترا - Elantra</option>
-              <option value="أكسنت">أكسنت - Accent</option>
-              <option value="فيرنا">فيرنا - Verna</option>
-              <option value="سوناتا">سوناتا - Sonata</option>
-              <option value="أزيرا">أزيرا - Azera</option>
-              <option value="ريو">ريو - Rio</option>
-              <option value="سيراتو">سيراتو - Cerato (فورتي)</option>
-              <option value="بيكانتو">بيكانتو - Picanto (مورنينغ)</option>
-              <option value="أوبتيما">أوبتيما - Optima (K5)</option>
-              <option value="كادينزا">كادينزا - Cadenza (K7)</option>
-              <option value="كورولا">كورولا - Corolla</option>
-              <option value="كامري">كامري - Camry</option>
-              <option value="يارس">يارس - Yaris (إيكو)</option>
-              <option value="صني">صني - Sunny</option>
-              <option value="تيدا">تيدا - Tiida</option>
-              <option value="مازدا 3">مازدا 3 - Mazda 3</option>
-              <option value="غولف">غولف - Golf</option>
-              <option value="جيتا">جيتا - Jetta</option>
-              <option value="باسات">باسات - Passat</option>
-              <option value="أسترا">أسترا - Astra</option>
-              <option value="فيكترا">فيكترا - Vectra</option>
-              <option value="ميغان">ميغان - Megane</option>
-              <option value="لوغان">لوغان - Logan</option>
-              <option value="أفيو">أفيو - Aveo</option>
-              <option value="كروز">كروز - Cruze</option>
-              <option value="لانوس">لانوس - Lanos</option>
-              <option value="نوبيرا">نوبيرا - Nubira</option>
-              <option value="أوكتافيا">أوكتافيا - Octavia</option>
-              <option value="الرياضة">الرياضة - Sport</option>
-              <option value="سيدان عام">سيدان عام - Sedan</option>
-            </optgroup>
-
-            <optgroup label="🚙 جيبات ودفع رباعي">
-              <option value="سنتافي">سنتافي - Santa Fe</option>
-              <option value="توسان">توسان - Tucson</option>
-              <option value="سبورتاج">سبورتاج - Sportage</option>
-              <option value="سورينتو">سورينتو - Sorento</option>
-              <option value="موهافي">موهافي - Mohave</option>
-              <option value="لاند كروزر">لاند كروزر - Land Cruiser</option>
-              <option value="برادو">برادو - Prado</option>
-              <option value="فورتشنر">فورتشنر - Fortuner</option>
-              <option value="راف فور">راف فور - RAV4</option>
-              <option value="باترول">باترول - Patrol (سوبر سفاري)</option>
-              <option value="باجيرو">باجيرو - Pajero</option>
-              <option value="شيروكي">شيروكي - Cherokee</option>
-              <option value="غراند شيروكي">غراند شيروكي - Grand Cherokee</option>
-              <option value="فيتارا">فيتارا - Grand Vitara</option>
-              <option value="لكزس جيب">لكزس جيب - Lexus LX</option>
-              <option value="بي ام دبليو X5">بي ام دبليو X5 - BMW X5</option>
-              <option value="دفع رباعي عام">دفع رباعي عام - SUV 4x4</option>
-            </optgroup>
+            <!-- سيتم ملؤه تلقائيًا بحسب الشركة المختارة -->
           </select>
         </div>
 
@@ -494,11 +398,12 @@
           </div>
         </div>
 
+        <!-- قائمة نمر ولوحات المحافظات السورية والكردستانية والعالمية -->
         <div class="form-group">
-          <label id="lblPlate">المحافظة / المدينة ورقم اللوحة *</label>
+          <label id="lblPlate">نمرة ومحافظة السيارة *</label>
           <div style="display: flex; gap: 6px;">
-            <select id="plateProvince" style="width: 50%;">
-              <optgroup label="المدن والبلدات">
+            <select id="plateProvince" style="width: 55%;">
+              <optgroup label="📍 الجزيرة والشمال والفرات (Rojava)">
                 <option value="قامشلو">قامشلو - Qamişlo</option>
                 <option value="كوباني">كوباني - Kobanî</option>
                 <option value="الحسكة">الحسكة - Hesekê</option>
@@ -515,8 +420,9 @@
                 <option value="رأس العين">رأس العين - Serê Kaniyê</option>
                 <option value="الشدادي">الشدادي - Şedadê</option>
               </optgroup>
-              <optgroup label="المحافظات السورية">
+              <optgroup label="🏛️ المحافظات السورية (Sûriyê)">
                 <option value="دمشق">دمشق - Şam</option>
+                <option value="ريف دمشق">ريف دمشق - Rîfa Şamê</option>
                 <option value="حلب">حلب - Heleb</option>
                 <option value="حمص">حمص - Hims</option>
                 <option value="حماة">حماة - Hema</option>
@@ -525,12 +431,32 @@
                 <option value="إدلب">إدلب - Idlib</option>
                 <option value="درعا">درعا - Der'a</option>
                 <option value="السويداء">السويداء - Siwêda</option>
-                <option value="ريف دمشق">ريف دمشق - Rîfa Şamê</option>
                 <option value="القنيطرة">القنيطرة - Quneytira</option>
+              </optgroup>
+              <optgroup label="☀️ إقليم كردستان والعراق (Kurdistan & Iraq)">
+                <option value="دهوك">دهوك - Duhok</option>
+                <option value="أربيل">أربيل - Hewlêr</option>
+                <option value="السليمانية">السليمانية - Silêmanî</option>
+                <option value="بغداد">بغداد - Bexda</option>
+                <option value="نينوى">نينوى / موصل - Nînewa</option>
+                <option value="كركوك">كركوك - Kerkûk</option>
+                <option value="البصرة">البصرة - Besra</option>
+                <option value="الأنبار">الأنبار - Enbar</option>
+                <option value="فحص مؤقت">فحص مؤقت (Test)</option>
+              </optgroup>
+              <optgroup label="🌍 دول الجوار والعالم (Derve)">
+                <option value="تركيا">تركيا - Tirkiye</option>
+                <option value="لبنان">لبنان - Lubnan</option>
+                <option value="الأردن">الأردن - Urdun</option>
+                <option value="دبي / الإمارات">دبي / الإمارات - Dubayî</option>
+                <option value="السعودية">السعودية - Siûdiye</option>
+                <option value="ألمانيا / أوروبا">ألمانيا / أوروبا - Ewropa</option>
+                <option value="أمريكا / كندا">أمريكا / كندا - Emerîka</option>
+                <option value="إدخال مؤقت">إدخال مؤقت - Tranzît</option>
                 <option value="بدون لوحة">بدون لوحة - Bê Plaqe</option>
               </optgroup>
             </select>
-            <input type="text" id="plateNumber" placeholder="الرقم: 12345" style="width: 50%;" required />
+            <input type="text" id="plateNumber" placeholder="الرقم: 12345" style="width: 45%;" required />
           </div>
         </div>
 
@@ -689,6 +615,393 @@
     let currentLightboxImages = [];
     let currentLightboxIndex = 0;
 
+    // ==================== [ قاعدة بيانات الشركات والموديلات الذكية المترابطة ] ==================== //
+    const CARS_BRANDS_MODELS_DB = {
+      'هيونداي': {
+        nameKu: 'Hyundai',
+        models: [
+          ['اتش 100', 'H100 (بيك أب / انتر)'],
+          ['اتش 1', 'H1 (فان / سرفيس)'],
+          ['قادشمية / أفانتي', 'Avante (إلنترا)'],
+          ['إلنترا', 'Elantra'],
+          ['أكسنت', 'Accent (فيرنا)'],
+          ['سنتافي', 'Santa Fe'],
+          ['توسان', 'Tucson'],
+          ['بورتير', 'Porter (بيك أب)'],
+          ['سوناتا', 'Sonata'],
+          ['أزيرا', 'Azera (غرانديور)'],
+          ['ستاريا', 'Staria (فان حديث)'],
+          ['كريتا', 'Creta'],
+          ['باليسيد', 'Palisade'],
+          ['كونا', 'Kona'],
+          ['فيلوستر', 'Veloster'],
+          ['تراجيت', 'Trajet (فان)']
+        ]
+      },
+      'تويوتا': {
+        nameKu: 'Toyota',
+        models: [
+          ['هايلوكس', 'Hilux (شاص / دبل كبين)'],
+          ['لاند كروزر', 'Land Cruiser (صالون / شاص / مفخرة)'],
+          ['برادو', 'Prado'],
+          ['هايس', 'Hiace (سرفيس / فان)'],
+          ['كامري', 'Camry'],
+          ['كورولا', 'Corolla'],
+          ['راف فور', 'RAV4'],
+          ['يارس', 'Yaris (إيكو)'],
+          ['أفالون', 'Avalon'],
+          ['فورتشنر', 'Fortuner'],
+          ['سيكويا', 'Sequoia'],
+          ['توندرا', 'Tundra'],
+          ['هايلاندر', 'Highlander'],
+          ['أفانزا', 'Avanza'],
+          ['لاند كروزر 70', 'Land Cruiser Pickup (شاص)']
+        ]
+      },
+      'كيا': {
+        nameKu: 'Kia',
+        models: [
+          ['ك 2700', 'K2700 (بيك أب)'],
+          ['ك 2500', 'K2500 (بيك أب)'],
+          ['بونغو', 'Bongo (بيك أب)'],
+          ['كرنفال', 'Carnival (فان عائلي)'],
+          ['سبورتاج', 'Sportage'],
+          ['سورينتو', 'Sorento'],
+          ['سيراتو', 'Cerato (فورتي)'],
+          ['ريو', 'Rio'],
+          ['بيكانتو', 'Picanto (مورنينغ)'],
+          ['أوبتيما', 'Optima (K5)'],
+          ['كادينزا', 'Cadenza (K7)'],
+          ['موهافي', 'Mohave'],
+          ['سيلتوس', 'Seltos'],
+          ['تيلورايد', 'Telluride'],
+          ['سونيت', 'Sonet'],
+          ['كارنس', 'Carens']
+        ]
+      },
+      'نيسان': {
+        nameKu: 'Nissan',
+        models: [
+          ['باترول', 'Patrol (سوبر سفاري / بطل الدروب)'],
+          ['صني', 'Sunny'],
+          ['نافارا / ددسن', 'Navara / Datsun (بيك أب)'],
+          ['تيدا', 'Tiida'],
+          ['سنترا', 'Sentra'],
+          ['ألتيما', 'Altima'],
+          ['ماكسيما', 'Maxima'],
+          ['إكس تريل', 'X-Trail'],
+          ['قشقاي', 'Qashqai'],
+          ['باثفايندر', 'Pathfinder'],
+          ['أورفان', 'Urvan (فان نيسان)'],
+          ['كيكس', 'Kicks'],
+          ['ميكرا', 'Micra']
+        ]
+      },
+      'ميتسوبيشي': {
+        nameKu: 'Mitsubishi',
+        models: [
+          ['ميتسوبيشي L200', 'L200 (بيك أب)'],
+          ['باجيرو', 'Pajero'],
+          ['كانتر', 'Canter (شاحنة)'],
+          ['لانسر', 'Lancer (بومة / قرش)'],
+          ['أوتلاندر', 'Outlander'],
+          ['إكليبس كروس', 'Eclipse Cross'],
+          ['روزا', 'Rosa (باص)']
+        ]
+      },
+      'سوزوكي': {
+        nameKu: 'Suzuki',
+        models: [
+          ['سوزوكي كاري', 'Carry (بيك أب / سوبر كاري)'],
+          ['غراند فيتارا', 'Grand Vitara'],
+          ['سويفت', 'Swift'],
+          ['جيمني', 'Jimny (جيب سوزوكي)'],
+          ['ألتو', 'Alto'],
+          ['سيليريو', 'Celerio'],
+          ['إرتيجا', 'Ertiga']
+        ]
+      },
+      'مرسيدس': {
+        nameKu: 'Mercedes-Benz',
+        models: [
+          ['E-Class', 'E200 / E300 (مرسيدس لف)'],
+          ['C-Class', 'C200 / C300'],
+          ['S-Class', 'S500 (شبح / حوت / فياجرا / يخت)'],
+          ['G-Class', 'G63 (جي كلاس)'],
+          ['GLE / ML', 'جيب مرسيدس'],
+          ['GLC / GLA', 'كروس أوفر'],
+          ['سبرنتر', 'Sprinter (فان مرسيدس)'],
+          ['فيتو', 'Vito (فان مرسيدس)'],
+          ['أكتروس', 'Actros (شاحنة)']
+        ]
+      },
+      'بي ام دبليو': {
+        nameKu: 'BMW',
+        models: [
+          ['الفئة 3', 'Series 3 (320 / 330)'],
+          ['الفئة 5', 'Series 5 (520 / 530 / 540)'],
+          ['الفئة 7', 'Series 7 (730 / 740 / 750)'],
+          ['X5', 'جيب X5'],
+          ['X6', 'جيب X6'],
+          ['X3', 'جيب X3'],
+          ['X7', 'جيب X7'],
+          ['M Power', 'M3 / M5']
+        ]
+      },
+      'فولكس فاجن': {
+        nameKu: 'Volkswagen',
+        models: [
+          ['غولف', 'Golf'],
+          ['جيتا', 'Jetta'],
+          ['باسات', 'Passat'],
+          ['تيغوان', 'Tiguan'],
+          ['طوارق', 'Touareg'],
+          ['كادي', 'Caddy (فان)'],
+          ['ترانسبورتر', 'Transporter (فان)']
+        ]
+      },
+      'شيفروليه': {
+        nameKu: 'Chevrolet',
+        models: [
+          ['أفيو', 'Aveo'],
+          ['كروز', 'Cruze'],
+          ['لانوس', 'Lanos'],
+          ['تاهو', 'Tahoe'],
+          ['سيلفرادو', 'Silverado (بيك أب)'],
+          ['كابتيفا', 'Captiva'],
+          ['تريل بليزر', 'Trailblazer'],
+          ['ماليبو', 'Malibu'],
+          ['سبارك', 'Spark'],
+          ['إكسبريس', 'Express (فان)']
+        ]
+      },
+      'دايو': {
+        nameKu: 'Daewoo',
+        models: [
+          ['لانوس', 'Lanos'],
+          ['نوبيرا', 'Nubira'],
+          ['ليجانزا', 'Leganza'],
+          ['داماس', 'Damas (فان تكسي)'],
+          ['لابو', 'Labo (بيك أب صغير)'],
+          ['ماتيز', 'Matiz'],
+          ['ريسر / إسبيرو', 'Espero / Racer']
+        ]
+      },
+      'أوبل': {
+        nameKu: 'Opel',
+        models: [
+          ['أسترا', 'Astra'],
+          ['فيكترا', 'Vectra'],
+          ['كورسا', 'Corsa'],
+          ['إنسيغنيا', 'Insignia'],
+          ['أوميغا', 'Omega'],
+          ['زافيرا', 'Zafira (فان عائلي)']
+        ]
+      },
+      'رينو': {
+        nameKu: 'Renault',
+        models: [
+          ['ميغان', 'Megane'],
+          ['لوغان / سيمبول', 'Logan / Symbol'],
+          ['كليو', 'Clio'],
+          ['داستر', 'Duster'],
+          ['كانغو', 'Kangoo (فان)'],
+          ['ماستر', 'Master (فان كبير)']
+        ]
+      },
+      'بيجو': {
+        nameKu: 'Peugeot',
+        models: [
+          ['206 / 207 / 208', 'Peugeot 206/207/208'],
+          ['301 / 307 / 308', 'Peugeot 301/307/308'],
+          ['405 / 406 / 508', 'Peugeot 405/406/508'],
+          ['بارتنر', 'Partner (فان بيجو)'],
+          ['بوكسر', 'Boxer (فان كبير)'],
+          ['3008 / 5008', 'جيب بيجو']
+        ]
+      },
+      'فورد': {
+        nameKu: 'Ford',
+        models: [
+          ['F-150', 'F-150 (بيك أب فورد)'],
+          ['رينجر', 'Ranger (بيك أب)'],
+          ['إكسبلورر', 'Explorer'],
+          ['إكسبيديشن', 'Expedition'],
+          ['تورس', 'Taurus'],
+          ['فوكس', 'Focus'],
+          ['فييستا', 'Fiesta'],
+          ['موستنج', 'Mustang'],
+          ['ترانزيت', 'Transit (فان فورد)']
+        ]
+      },
+      'جيب': {
+        nameKu: 'Jeep',
+        models: [
+          ['غراند شيروكي', 'Grand Cherokee'],
+          ['شيروكي', 'Cherokee'],
+          ['رانجلر', 'Wrangler (روبيكون)'],
+          ['كومباس', 'Compass'],
+          ['رينيجيد', 'Renegade'],
+          ['جلاديتور', 'Gladiator (بيك أب جيب)']
+        ]
+      },
+      'لاند روفر': {
+        nameKu: 'Land Rover',
+        models: [
+          ['رينج روفر', 'Range Rover (فوج / سبورت)'],
+          ['ديفندر', 'Defender'],
+          ['ديسكفري', 'Discovery'],
+          ['إيفوك', 'Evoque'],
+          ['فيلار', 'Velar']
+        ]
+      },
+      'لكزس': {
+        nameKu: 'Lexus',
+        models: [
+          ['LX 570 / 600', 'Lexus LX (جيب لكزس)'],
+          ['GX 460', 'Lexus GX'],
+          ['RX 350', 'Lexus RX'],
+          ['ES 350', 'Lexus ES'],
+          ['LS 460 / 500', 'Lexus LS'],
+          ['IS 250 / 350', 'Lexus IS']
+        ]
+      },
+      'مازدا': {
+        nameKu: 'Mazda',
+        models: [
+          ['مازدا 3', 'Mazda 3'],
+          ['مازدا 6', 'Mazda 6'],
+          ['مازدا 2', 'Mazda 2'],
+          ['مازدا 323 / 626', 'Mazda 323/626'],
+          ['CX-9 / CX-5', 'جيب مازدا'],
+          ['BT-50', 'BT-50 (بيك أب مازدا)']
+        ]
+      },
+      'أودي': {
+        nameKu: 'Audi',
+        models: [
+          ['A4 / A6 / A8', 'Audi Sedan'],
+          ['Q5 / Q7 / Q8', 'Audi SUV'],
+          ['A3 / Q3', 'Audi Compact']
+        ]
+      },
+      'جمس': {
+        nameKu: 'GMC',
+        models: [
+          ['يوكن', 'Yukon (دينالي)'],
+          ['سييرا', 'Sierra (بيك أب جمس)'],
+          ['أكاديا', 'Acadia'],
+          ['تيرين', 'Terrain'],
+          ['سفاري', 'Safari (فان جمس)']
+        ]
+      },
+      'دودج': {
+        nameKu: 'Dodge',
+        models: [
+          ['تشارجر', 'Charger'],
+          ['تشالنجر', 'Challenger'],
+          ['دورانجو', 'Durango'],
+          ['رام 1500', 'RAM (بيك أب)']
+        ]
+      },
+      'شانجان': {
+        nameKu: 'Changan',
+        models: [
+          ['CS95 / CS85 / CS75', 'Changan CS Series'],
+          ['UNI-K / UNI-T / UNI-V', 'Changan UNI Series'],
+          ['إيدو بلس', 'Eado Plus'],
+          ['هانتر', 'Hunter (بيك أب)']
+        ]
+      },
+      'شيري': {
+        nameKu: 'Chery',
+        models: [
+          ['تيغو 8 / 7 / 4', 'Tiggo Series'],
+          ['أريزو 5 / 6 / 8', 'Arrizo Series']
+        ]
+      },
+      'إم جي': {
+        nameKu: 'MG',
+        models: [
+          ['RX8 / RX5 / ZS', 'MG SUV'],
+          ['MG GT / MG 5', 'MG Sedan'],
+          ['T60', 'T60 (بيك أب MG)']
+        ]
+      },
+      'جيلي': {
+        nameKu: 'Geely',
+        models: [
+          ['مونجارو', 'Monjaro'],
+          ['توجيلا', 'Tugella'],
+          ['كولراي', 'Coolray'],
+          ['إمجراند', 'Emgrand']
+        ]
+      },
+      'هافال': {
+        nameKu: 'Haval',
+        models: [
+          ['H6 / H9', 'Haval H Series'],
+          ['جوليان', 'Jolion'],
+          ['دارغو', 'Dargo'],
+          ['باور', 'Poer (بيك أب Great Wall)']
+        ]
+      },
+      'سكودا': {
+        nameKu: 'Skoda',
+        models: [
+          ['أوكتافيا', 'Octavia'],
+          ['سوبيرب', 'Superb'],
+          ['كودياك', 'Kodiaq'],
+          ['فابيا', 'Fabia']
+        ]
+      },
+      'سيارات وشاحنات أخرى': {
+        nameKu: 'Marqeyên Din',
+        models: [
+          ['بورش كايين', 'Porsche Cayenne'],
+          ['سوبارو فورستر', 'Subaru Forester'],
+          ['فولفو XC90', 'Volvo XC90'],
+          ['سيات ليون', 'Seat Leon'],
+          ['فيات تيبو / دوبلو', 'Fiat Tipo / Doblo'],
+          ['سابا 131', 'Saba 131 (برايد)'],
+          ['شام / سيامكو', 'Sham (Siamco)'],
+          ['إيسوزو D-Max', 'Isuzu D-Max (بيك أب)'],
+          ['شاحنة مرسيدس / مان', 'Truck MAN / Mercedes']
+        ]
+      }
+    };
+
+    // تهيئة قائمة الشركات والموديلات الذكية
+    function populateBrandsDropdown() {
+      const brandSelect = document.getElementById('carName');
+      brandSelect.innerHTML = '';
+      for (const brand in CARS_BRANDS_MODELS_DB) {
+        const opt = document.createElement('option');
+        opt.value = brand;
+        opt.innerText = `${brand} - ${CARS_BRANDS_MODELS_DB[brand].nameKu}`;
+        brandSelect.appendChild(opt);
+      }
+      updateModelsDropdown();
+    }
+
+    function updateModelsDropdown() {
+      const brandSelect = document.getElementById('carName');
+      const modelSelect = document.getElementById('carModel');
+      const selectedBrand = brandSelect.value;
+
+      modelSelect.innerHTML = '';
+
+      if (CARS_BRANDS_MODELS_DB[selectedBrand]) {
+        const modelsList = CARS_BRANDS_MODELS_DB[selectedBrand].models;
+        modelsList.forEach(([mAr, mDesc]) => {
+          const opt = document.createElement('option');
+          opt.value = mAr;
+          opt.innerText = `${mAr} (${mDesc})`;
+          modelSelect.appendChild(opt);
+        });
+      }
+    }
+
     function populateYears() {
       const select = document.getElementById('carYear');
       select.innerHTML = '';
@@ -794,11 +1107,12 @@
 
     const AUTO_TRANSLATE_DB = [
       ['اتش 100', 'H100'], ['اتش 1', 'H1'], ['فان', 'Van'], ['بورتير', 'Porter'],
+      ['قادشمية / أفانتي', 'Avante'], ['قادشمية', 'Avante'], ['أفانتي', 'Avante'],
       ['ك 2700', 'K2700'], ['ك 2500', 'K2500'], ['بونغو', 'Bongo'], ['هايس', 'Hiace'],
       ['سرفيس', 'Servîs (Hiace)'], ['كرنفال', 'Carnival'], ['سوزوكي كاري', 'Suzuki Carry'],
-      ['أفانتي', 'Avante'], ['إلنترا', 'Elantra'], ['أكسنت', 'Accent'], ['فيرنا', 'Verna'],
+      ['إلنترا', 'Elantra'], ['أكسنت', 'Accent'], ['فيرنا', 'Verna'],
       ['سوناتا', 'Sonata'], ['أزيرا', 'Azera'], ['ريو', 'Rio'], ['سيراتو', 'Cerato'],
-      ['بيكانتو', 'Picanto'], ['أوبتيما', 'Optima'], ['كادينزا', 'Cadenza'],
+      ['بيكانتو', 'Picanto'], ['أوبتيما', 'Optima (K5)'], ['كادينزا', 'Cadenza (K7)'],
       ['كورولا', 'Corolla'], ['كامري', 'Camry'], ['يارس', 'Yaris'], ['صني', 'Sunny'],
       ['سنتافي', 'Santa Fe'], ['توسان', 'Tucson'], ['سبورتاج', 'Sportage'], ['سورينتو', 'Sorento'],
       ['لاند كروزر', 'Land Cruiser'], ['برادو', 'Prado'], ['باترول', 'Patrol'], ['الرياضة', 'Sport'],
@@ -1092,7 +1406,6 @@
       } catch (err) {}
     }
 
-    /* عرض البطاقات مع شارة الحالة وصيغة العرض الجميلة */
     function renderCarsList(cars) {
       const t = translations[currentLang];
       const container = document.getElementById('carsContainer');
@@ -1100,7 +1413,6 @@
 
       container.innerHTML = '';
 
-      // فلترة السيارات حسب التبويب المختار
       let filtered = cars;
       if (currentStatusFilter !== 'all') {
         filtered = filtered.filter(c => (c.status || 'available') === currentStatusFilter);
@@ -1254,6 +1566,7 @@
       document.getElementById('notesLivePreview').style.display = 'none';
       document.getElementById('modalTitle').innerText = t.modalAddTitle;
       document.getElementById('carDate').value = new Date().toISOString().split('T')[0];
+      populateBrandsDropdown();
       document.getElementById('carModal').classList.add('active');
     }
 
@@ -1314,8 +1627,11 @@
         document.getElementById('plateNumber').value = car.plate_number;
       }
 
+      populateBrandsDropdown();
       document.getElementById('carName').value = car.car_name;
+      updateModelsDropdown();
       document.getElementById('carModel').value = car.car_model;
+
       document.getElementById('carYear').value = car.car_year;
       document.getElementById('chassisNumber').value = car.chassis_number;
       document.getElementById('carColor').value = car.car_color || 'أبيض';
@@ -1502,6 +1818,7 @@
 
     window.onload = () => {
       populateYears();
+      populateBrandsDropdown();
       setLanguage(currentLang);
       loadOnlineCars();
     };
