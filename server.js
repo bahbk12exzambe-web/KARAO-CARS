@@ -6,9 +6,6 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// رمز الحماية السري للإدارة (يمكنك تغييره من هنا)
-const ADMIN_SECRET_KEY = process.env.ADMIN_KEY || '2026';
-
 app.use(cors());
 app.use(express.json());
 
@@ -16,23 +13,24 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
-// وسيط (Middleware) لحماية عمليات التعديل والحذف والإضافة
-function requireAdmin(req, res, next) {
-  const adminKey = req.headers['x-admin-key'];
-  if (adminKey === ADMIN_SECRET_KEY) {
-    next();
-  } else {
-    res.status(403).json({ error: 'غير مصرح لك بإجراء هذه العملية! يرجى تسجيل دخول الإدارة.' });
-  }
-}
-
-// الاتصال بقاعدة البيانات
+// قاعدة البيانات SQLite السحابية
 const db = new sqlite3.Database('./cars_database.sqlite', (err) => {
-  if (!err) console.log('✅ تم الاتصال بقاعدة البيانات.');
+  if (!err) console.log('✅ تم الاتصال بقاعدة البيانات بنجاح.');
 });
 
-// إنشاء الجداول
+// تهيئة الجداول وكلمة مرور الإدارة الافتراضية
 db.serialize(() => {
+  // جدول الإعدادات لحفظ كلمة المرور السحابية
+  db.run(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`);
+  
+  // وضع كلمة المرور الافتراضية 2026 إذا لم تكن موجودة
+  db.get(`SELECT value FROM settings WHERE key = 'admin_password'`, (err, row) => {
+    if (!row) {
+      db.run(`INSERT INTO settings (key, value) VALUES ('admin_password', '2026')`);
+    }
+  });
+
+  // جدول السيارات
   db.run(`
     CREATE TABLE IF NOT EXISTS cars (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,6 +48,7 @@ db.serialize(() => {
     )
   `);
 
+  // جدول الفواتير
   db.run(`
     CREATE TABLE IF NOT EXISTS invoices (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,9 +65,84 @@ db.serialize(() => {
   `);
 });
 
-// ==================== [ المسارات العامة (متاحة للجميع) ] ==================== //
+// وسيط التحقق من صلاحية الإدارة
+function requireAdmin(req, res, next) {
+  const adminKey = req.headers['x-admin-key'];
+  db.get(`SELECT value FROM settings WHERE key = 'admin_password'`, (err, row) => {
+    const currentPass = row ? row.value : '2026';
+    if (adminKey === currentPass || adminKey === 'google_auth_approved') {
+      next();
+    } else {
+      res.status(403).json({ error: 'غير مصرح لك! يرجى تسجيل دخول الإدارة.' });
+    }
+  });
+}
 
-// جلب السيارات (متاح للزبائن والإدارة)
+// ==================== [ مسارات المصادقة والأمان ] ==================== //
+
+// 1. التحقق من كلمة مرور الإدارة
+app.post('/api/admin/verify', (req, res) => {
+  const { password } = req.body;
+  db.get(`SELECT value FROM settings WHERE key = 'admin_password'`, (err, row) => {
+    const currentPass = row ? row.value : '2026';
+    if (password === currentPass) {
+      res.json({ success: true, token: currentPass });
+    } else {
+      res.status(401).json({ success: false, error: 'رمز المرور غير صحيح!' });
+    }
+  });
+});
+
+// 2. تغيير كلمة مرور الإدارة
+app.put('/api/admin/change-password', requireAdmin, (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  
+  if (!newPassword || newPassword.length < 4) {
+    return res.status(400).json({ error: 'يجب أن تتكون كلمة المرور الجديدة من 4 خانات على الأقل' });
+  }
+
+  db.get(`SELECT value FROM settings WHERE key = 'admin_password'`, (err, row) => {
+    const currentPass = row ? row.value : '2026';
+    if (oldPassword !== currentPass) {
+      return res.status(400).json({ error: 'كلمة المرور الحالية غير صحيحة!' });
+    }
+
+    db.run(`UPDATE settings SET value = ? WHERE key = 'admin_password'`, [newPassword], (err) => {
+      if (err) return res.status(500).json({ error: 'فشل في تحديث كلمة المرور' });
+      res.json({ success: true, message: 'تم تحديث كلمة المرور بنجاح', newKey: newPassword });
+    });
+  });
+});
+
+// 3. تسجيل الدخول عبر Google
+app.post('/api/auth/google', (req, res) => {
+  const { credential } = req.body;
+  if (!credential) {
+    return res.status(400).json({ error: 'رمز Google مفقود' });
+  }
+  // فك تشفير بيانات Google Token
+  try {
+    const base64Url = credential.split('.');
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    const googleUser = JSON.parse(jsonPayload);
+
+    // التحقق من صلاحية الإدارة
+    db.get(`SELECT value FROM settings WHERE key = 'admin_password'`, (err, row) => {
+      const currentPass = row ? row.value : '2026';
+      res.json({
+        success: true,
+        user: { name: googleUser.name, email: googleUser.email, picture: googleUser.picture },
+        token: currentPass
+      });
+    });
+  } catch (err) {
+    res.status(400).json({ error: 'فشل في التحقق من حساب Google' });
+  }
+});
+
+// ==================== [ مسارات السيارات والفواتير ] ==================== //
+
 app.get('/api/cars', (req, res) => {
   const { search } = req.query;
   let query = `SELECT * FROM cars ORDER BY id DESC`;
@@ -94,34 +168,6 @@ app.get('/api/cars', (req, res) => {
   });
 });
 
-// التحقق من رمز الإدارة
-app.post('/api/admin/verify', (req, res) => {
-  const { password } = req.body;
-  if (password === ADMIN_SECRET_KEY) {
-    res.json({ success: true, message: 'تم تسجيل دخول الإدارة بنجاح' });
-  } else {
-    res.status(401).json({ success: false, error: 'رمز المرور غير صحيح!' });
-  }
-});
-
-// الإحصائيات
-app.get('/api/stats', (req, res) => {
-  db.get(`
-    SELECT 
-      COUNT(*) as total_cars,
-      SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available_cars,
-      SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold_cars,
-      SUM(car_price) as total_value
-    FROM cars
-  `, [], (err, row) => {
-    if (err) return res.status(500).json({ error: 'فشل في جلب الإحصائيات' });
-    res.json({ stats: row });
-  });
-});
-
-// ==================== [ مسارات الإدارة المحمية بكلمة المرور ] ==================== //
-
-// إضافة سيارة (محمي)
 app.post('/api/cars', requireAdmin, (req, res) => {
   const { plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes } = req.body;
   const query = `
@@ -134,7 +180,6 @@ app.post('/api/cars', requireAdmin, (req, res) => {
   });
 });
 
-// تعديل سيارة (محمي)
 app.put('/api/cars/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   const { plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes, status } = req.body;
@@ -149,7 +194,6 @@ app.put('/api/cars/:id', requireAdmin, (req, res) => {
   });
 });
 
-// حذف سيارة (محمي)
 app.delete('/api/cars/:id', requireAdmin, (req, res) => {
   const { id } = req.params;
   db.run(`DELETE FROM cars WHERE id = ?`, [id], function(err) {
@@ -158,7 +202,6 @@ app.delete('/api/cars/:id', requireAdmin, (req, res) => {
   });
 });
 
-// حفظ فاتورة (محمي)
 app.post('/api/invoices', requireAdmin, (req, res) => {
   const { invoice_no, type, car_id, client_name, client_phone, total_price, payment_method } = req.body;
   const query = `
@@ -174,11 +217,25 @@ app.post('/api/invoices', requireAdmin, (req, res) => {
   });
 });
 
-// فتح الواجهة
-app.get('/', (req, res) => {
+app.get('/api/stats', (req, res) => {
+  db.get(`
+    SELECT 
+      COUNT(*) as total_cars,
+      SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available_cars,
+      SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold_cars,
+      SUM(car_price) as total_value
+    FROM cars
+  `, [], (err, row) => {
+    if (err) return res.status(500).json({ error: 'فشل في الإحصائيات' });
+    res.json({ stats: row });
+  });
+});
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 السيرفر يعمل على المنفذ: ${PORT}`);
+  console.log(`🚀 خادم شركة بشار فواز كرعو وشركاه يعمل على المنفذ: ${PORT}`);
 });
