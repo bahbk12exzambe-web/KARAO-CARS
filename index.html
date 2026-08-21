@@ -25,6 +25,18 @@
     body { background-color: var(--bg); color: var(--text); padding: 12px; }
     .container { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
 
+    /* إشعار تم الحفظ بنجاح (Toast Notification) */
+    .toast-msg {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+      padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 900;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 999999;
+      transition: transform 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.3s ease;
+      opacity: 0; pointer-events: none; display: flex; align-items: center; gap: 8px; text-align: center;
+    }
+    .toast-msg.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast-msg.success { background: #065f46; border: 1px solid #10b981; color: #ecfdf5; }
+    .toast-msg.error { background: #991b1b; border: 1px solid #ef4444; color: #fef2f2; }
+
     .header {
       background: var(--surface); padding: 16px; border-radius: 14px; border: 1px solid var(--border);
       display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -50,7 +62,6 @@
     .stat-val { font-size: 16px; font-weight: 900; color: var(--primary); }
     .stat-lbl { font-size: 10px; color: var(--text-muted); font-weight: bold; }
 
-    /* شريط تصفية الحالة */
     .filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
     .filter-tab-btn {
       padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; border: 1px solid var(--border);
@@ -74,7 +85,6 @@
     .search-box { flex: 1; }
     .search-box input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; background: #fff; }
 
-    /* بطاقات عرض السيارات */
     .cars-list { display: flex; flex-direction: column; gap: 14px; }
     .car-card {
       background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
@@ -125,7 +135,6 @@
     .car-title-badge { font-size: 17px; font-weight: 900; color: #1e3a8a; }
     .car-plate-badge { background: #0f172a; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 6px; }
 
-    /* مصفوفة المواصفات */
     .specs-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc;
       padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9;
@@ -148,7 +157,7 @@
     .card-actions { display: none; grid-template-columns: 2fr 1fr 1fr; gap: 6px; margin-top: 4px; }
     .empty-state { text-align: center; padding: 35px 20px; background: #fff; border-radius: 14px; color: var(--text-muted); font-size: 13px; }
 
-    /* تكبير الصور (Lightbox) */
+    /* Lightbox Modal */
     #lightboxModal {
       position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92); z-index: 10000;
       display: none; align-items: center; justify-content: center; flex-direction: column; padding: 15px;
@@ -200,6 +209,9 @@
 </head>
 <body>
 
+  <!-- شريط الإشعار المنبثق -->
+  <div id="toastNotification" class="toast-msg"></div>
+
   <div class="container">
     <div class="header">
       <div class="header-top">
@@ -221,7 +233,6 @@
         </div>
       </div>
 
-      <!-- الإحصائيات -->
       <div class="stats-bar">
         <div class="stat-box">
           <div class="stat-val" id="statTotal">0</div>
@@ -250,7 +261,7 @@
       </div>
     </div>
 
-    <!-- شريط تصفية الحالة -->
+    <!-- تصفية الحالة -->
     <div class="filter-tabs">
       <button class="filter-tab-btn active" id="tabAll" onclick="setStatusFilter('all')">عرض الكل</button>
       <button class="filter-tab-btn" id="tabAvailable" onclick="setStatusFilter('available')">🟢 متوفرة للبيع</button>
@@ -326,7 +337,7 @@
     </div>
   </div>
 
-  <!-- نافذة إضافة / تعديل السيارة مع القوائم المنسدلة الذكية المرتبطة -->
+  <!-- نافذة إضافة / تعديل السيارة -->
   <div id="carModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -337,14 +348,12 @@
       <form id="carForm" onsubmit="saveCarOnline(event)">
         <input type="hidden" id="carIndex" value="-1" />
 
-        <!-- رفع الصور -->
         <div class="form-group">
           <label>📸 صور السيارة (حتى 5 صور)</label>
           <input type="file" id="carMultipleImagesInput" accept="image/*" multiple onchange="handleMultipleImagesUpload(event)" />
           <div id="multiImagesPreviewGrid" class="multi-preview-grid"></div>
         </div>
 
-        <!-- حالة السيارة -->
         <div class="form-group">
           <label id="lblStatusForm">حالة السيارة المعروضة *</label>
           <select id="carStatus" required>
@@ -354,20 +363,14 @@
           </select>
         </div>
 
-        <!-- شركة السيارة (القائمة الأولى) -->
         <div class="form-group">
           <label id="lblCarName">اسم الشركة المصنعة *</label>
-          <select id="carName" onchange="updateModelsDropdown()" required>
-            <!-- سيتم ملء الشركات بالـ JS -->
-          </select>
+          <select id="carName" onchange="updateModelsDropdown()" required></select>
         </div>
 
-        <!-- موديل وفئة السيارة (القائمة الذكية المرتبطة تلقائيًا بالشركة) -->
         <div class="form-group">
           <label id="lblModel">نوع الموديل / الفئة *</label>
-          <select id="carModel" required>
-            <!-- سيتم ملؤه تلقائيًا بحسب الشركة المختارة -->
-          </select>
+          <select id="carModel" required></select>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -398,7 +401,6 @@
           </div>
         </div>
 
-        <!-- قائمة نمر ولوحات المحافظات السورية والكردستانية والعالمية -->
         <div class="form-group">
           <label id="lblPlate">نمرة ومحافظة السيارة *</label>
           <div style="display: flex; gap: 6px;">
@@ -615,7 +617,16 @@
     let currentLightboxImages = [];
     let currentLightboxIndex = 0;
 
-    // ==================== [ قاعدة بيانات الشركات والموديلات الذكية المترابطة ] ==================== //
+    // دالة إظهار الإشعار المنبثق
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toastNotification');
+      toast.innerText = message;
+      toast.className = `toast-msg show ${type}`;
+      setTimeout(() => {
+        toast.className = 'toast-msg';
+      }, 3200);
+    }
+
     const CARS_BRANDS_MODELS_DB = {
       'هيونداي': {
         nameKu: 'Hyundai',
@@ -971,7 +982,6 @@
       }
     };
 
-    // تهيئة قائمة الشركات والموديلات الذكية
     function populateBrandsDropdown() {
       const brandSelect = document.getElementById('carName');
       brandSelect.innerHTML = '';
@@ -1202,7 +1212,11 @@
         confirmDelete: "هل أنت متأكد من حذف هذه السيارة نهائيًا من السيرفر؟",
         statusAvailableTxt: "🟢 متوفرة للبيع",
         statusSoldTxt: "🔴 تم البيع بنجاح",
-        statusReservedTxt: "🟡 محجوزة"
+        statusReservedTxt: "🟡 محجوزة",
+        saveSuccessAdd: "✅ تم حفظ السيارة بنجاح!",
+        saveSuccessEdit: "✅ تم تحديث بيانات السيارة بنجاح!",
+        deleteSuccess: "🗑️ تم حذف السيارة بنجاح!",
+        invoiceSuccess: "🖨️ تم حفظ وإصدار الفاتورة بنجاح!"
       },
       ku: {
         appTitle: "Şîrketa Beşar Fewaz Kere'o",
@@ -1232,7 +1246,11 @@
         confirmDelete: "Ma tu piştrast î ku dixwazî vê otomobîlê jê bibî?",
         statusAvailableTxt: "🟢 Berdest e",
         statusSoldTxt: "🔴 Hat Firotin",
-        statusReservedTxt: "🟡 Rezervkirî"
+        statusReservedTxt: "🟡 Rezervkirî",
+        saveSuccessAdd: "✅ Otomobîl bi serkeftin hat tomarkirin!",
+        saveSuccessEdit: "✅ Agahiyên otomobîlê bi serkeftin hatin nûkirin!",
+        deleteSuccess: "🗑️ Otomobîl bi serkeftin hat jêbirin!",
+        invoiceSuccess: "🖨️ Fatûre bi serkeftin hat tomarkirin!"
       }
     };
 
@@ -1306,6 +1324,7 @@
           loggedAdminEmail = '';
           updateAdminUI();
           renderCarsList(loadedCarsList);
+          showToast(currentLang === 'ku' ? 'Ji rêveberiyê derket' : 'تم تسجيل الخروج بنجاح');
         }
       } else {
         document.getElementById('loginEmail').value = '';
@@ -1335,12 +1354,12 @@
           closeAuthModal();
           updateAdminUI();
           renderCarsList(loadedCarsList);
-          alert(`✅ أهلاً بك! تم تسجيل دخول الإدارة بنجاح بالحساب (${data.email}).`);
+          showToast(`✅ أهلاً بك يا بشار! تم تسجيل الدخول بنجاح`);
         } else {
-          alert(`❌ ${data.error || 'البريد أو كلمة المرور غير صحيحة!'}`);
+          showToast(`❌ ${data.error || 'البريد أو كلمة المرور غير صحيحة!'}`, 'error');
         }
       } catch (err) {
-        alert('فشل الاتصال بالسيرفر');
+        showToast('فشل الاتصال بالسيرفر', 'error');
       }
     }
 
@@ -1371,12 +1390,12 @@
           localStorage.setItem(AUTH_KEY, data.newEmail);
           loggedAdminEmail = data.newEmail;
           closeAccountModal();
-          alert('✅ تم تحديث بيانات البريد الإلكتروني وكلمة المرور بنجاح في السيرفر!');
+          showToast('✅ تم تحديث بيانات البريد وكلمة المرور بنجاح!');
         } else {
-          alert(`❌ ${data.error || 'فشل في تحديث الحساب'}`);
+          showToast(`❌ ${data.error || 'فشل في تحديث الحساب'}`, 'error');
         }
       } catch (err) {
-        alert('حدث خطأ في الاتصال بالسيرفر');
+        showToast('حدث خطأ في الاتصال بالسيرفر', 'error');
       }
     }
 
@@ -1572,9 +1591,11 @@
 
     function closeModal() { document.getElementById('carModal').classList.remove('active'); }
 
+    // حفظ السيارة مع إظهار رسالة "تم الحفظ بنجاح" الفورية
     async function saveCarOnline(e) {
       e.preventDefault();
       const idInput = document.getElementById('carIndex').value;
+      const t = translations[currentLang];
 
       const province = document.getElementById('plateProvince').value;
       const number = document.getElementById('plateNumber').value.trim();
@@ -1606,11 +1627,17 @@
         if (res.ok) {
           closeModal();
           loadOnlineCars();
+          // إشعار تم الحفظ بنجاح
+          if (idInput === '-1') {
+            showToast(t.saveSuccessAdd);
+          } else {
+            showToast(t.saveSuccessEdit);
+          }
         } else {
-          alert('فشل الحفظ: يرجى تسجيل الدخول بحساب الإدارة أولاً!');
+          showToast('فشل الحفظ: يرجى تسجيل الدخول بحساب الإدارة أولاً!', 'error');
         }
       } catch (err) {
-        alert('حدث خطأ في الاتصال بالسيرفر!');
+        showToast('حدث خطأ في الاتصال بالسيرفر!', 'error');
       }
     }
 
@@ -1664,11 +1691,12 @@
         const res = await fetch(`/api/cars/${id}`, { method: 'DELETE', headers: getAdminHeader() });
         if (res.ok) {
           loadOnlineCars();
+          showToast(t.deleteSuccess);
         } else {
-          alert('غير مصرح لك بالحذف! يرجى تسجيل الدخول بالبريد الإلكتروني.');
+          showToast('غير مصرح لك بالحذف! يرجى تسجيل الدخول بالبريد.', 'error');
         }
       } catch (err) {
-        alert('فشل في حذف السيارة!');
+        showToast('فشل في حذف السيارة!', 'error');
       }
     }
 
@@ -1686,6 +1714,7 @@
 
     async function printAndSaveInvoiceOnline() {
       if (!currentSelectedCar) return;
+      const t = translations[currentLang];
 
       const invType = document.getElementById('invType').value;
       const invNo = 'INV-' + Math.floor(100000 + Math.random() * 900000);
@@ -1778,6 +1807,7 @@
       closeInvoiceModal();
       window.print();
       loadOnlineCars();
+      showToast(t.invoiceSuccess);
     }
 
     function exportToExcel() {
