@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#1e3a8a" />
-  <title id="pageTitle">شركة بشار فواز كرعو وشركاه - أونلاين</title>
+  <title id="pageTitle">شركة بشار فواز كرعو وشركاه</title>
 
   <style>
     :root {
@@ -35,17 +35,25 @@
     .header-title h1 { font-size: 17px; color: #1e3a8a; font-weight: 900; }
     .header-title p { font-size: 11px; color: var(--text-muted); }
 
-    /* أزرار اللغة والإحصائيات */
+    .header-controls { display: flex; gap: 6px; align-items: center; }
+
     .lang-switcher { display: flex; background: #e2e8f0; padding: 2px; border-radius: 8px; }
-    .lang-btn { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; background: transparent; color: #475569; }
+    .lang-btn { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; background: transparent; color: #475569; }
     .lang-btn.active { background: var(--primary); color: #ffffff; }
+
+    .btn-admin-auth { background: #0f172a; color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
+    .btn-admin-auth.logged { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
 
     .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
     .stat-box { background: #f8fafc; border: 1px solid var(--border); padding: 8px; border-radius: 8px; text-align: center; }
     .stat-val { font-size: 16px; font-weight: 900; color: var(--primary); }
     .stat-lbl { font-size: 10px; color: var(--text-muted); font-weight: bold; }
 
-    .btn-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; }
+    .admin-only { display: none !important; }
+    body.is-admin .admin-only { display: inline-flex !important; }
+    body.is-admin .admin-grid { display: grid !important; }
+
+    .btn-grid { display: none; grid-template-columns: 2fr 1fr; gap: 6px; }
     button { padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
     .btn-primary { background-color: var(--primary); color: white; }
     .btn-success { background-color: var(--success); color: white; }
@@ -73,7 +81,7 @@
 
     .card-notes-box { font-size: 12px; color: #334155; background: #f1f5f9; padding: 8px 10px; border-radius: 8px; border-right: 3px solid var(--primary); }
     html[dir="ltr"] .card-notes-box { border-right: none; border-left: 3px solid var(--primary); }
-    .card-actions { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; }
+    .card-actions { display: none; grid-template-columns: 2fr 1fr 1fr; gap: 6px; }
     .empty-state { text-align: center; padding: 35px 20px; background: #fff; border-radius: 14px; color: var(--text-muted); font-size: 13px; }
 
     /* النوافذ المنبثقة */
@@ -86,7 +94,7 @@
     .form-group select, .form-group input, .form-group textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
     .live-translate-hint { font-size: 11px; color: var(--purple); background: #faf5ff; padding: 6px 8px; border-radius: 6px; margin-top: 4px; }
 
-    /* قالب الفاتورة المطبوعة */
+    /* قالب الطباعة */
     #invoicePrintArea { display: none; }
     @media print {
       body * { visibility: hidden; }
@@ -109,21 +117,25 @@
           <div class="app-icon-img">🚗</div>
           <div>
             <h1 id="lblAppTitle">شركة بشار فواز كرعو وشركاه</h1>
-            <p id="lblAppDesc">النظام السحابي المباشر لإدارة وسجل السيارات</p>
+            <p id="lblAppDesc">معرض وسجل السيارات وفواتير البيع والشراء</p>
           </div>
         </div>
 
-        <div class="lang-switcher">
-          <button class="lang-btn active" id="btnLangAr" onclick="setLanguage('ar')">🇸🇾 عربي</button>
-          <button class="lang-btn" id="btnLangKu" onclick="setLanguage('ku')">☀️ Kurdî</button>
+        <div class="header-controls">
+          <div class="lang-switcher">
+            <button class="lang-btn active" id="btnLangAr" onclick="setLanguage('ar')">🇸🇾 عربي</button>
+            <button class="lang-btn" id="btnLangKu" onclick="setLanguage('ku')">☀️ Kurdî</button>
+          </div>
+          <!-- زر تسجيل دخول وخروج الإدارة -->
+          <button id="btnAdminAuth" class="btn-admin-auth" onclick="handleAdminAuthClick()">🔐 دخول الإدارة</button>
         </div>
       </div>
 
-      <!-- إحصائيات حية من السيرفر السحابي -->
+      <!-- الإحصائيات -->
       <div class="stats-bar">
         <div class="stat-box">
           <div class="stat-val" id="statTotal">0</div>
-          <div class="stat-lbl" id="lblStatTotal">إجمالي السيارات</div>
+          <div class="stat-lbl" id="lblStatTotal">إجمالي المعروض</div>
         </div>
         <div class="stat-box">
           <div class="stat-val" id="statAvailable" style="color: #10b981;">0</div>
@@ -135,8 +147,9 @@
         </div>
       </div>
 
-      <div class="btn-grid">
-        <button class="btn-primary" onclick="openModal()" id="btnAddCar">➕ إضافة سيارة سحابية</button>
+      <!-- أزرار الإدارة (تظهر للمدير فقط) -->
+      <div class="btn-grid admin-grid">
+        <button class="btn-primary" onclick="openModal()" id="btnAddCar">➕ إضافة سيارة</button>
         <button class="btn-success" onclick="exportToExcel()" id="btnExportExcel">📊 تصدير Excel</button>
       </div>
     </div>
@@ -148,9 +161,30 @@
       </div>
     </div>
 
-    <!-- قائمة البطاقات السحابية -->
+    <!-- قائمة البطاقات -->
     <div id="carsContainer" class="cars-list"></div>
     <div id="emptyMessage" class="empty-state" style="display: none;"></div>
+  </div>
+
+  <!-- نافذة تسجيل دخول الإدارة -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal" style="max-width: 360px; text-align: center;">
+      <div class="modal-header">
+        <h2 style="font-size: 16px;">🔐 تسجيل دخول إدارة المعرض</h2>
+        <button class="btn-secondary" style="padding: 4px 10px;" onclick="closeAuthModal()">✕</button>
+      </div>
+      <p style="font-size: 12px; color: #64748b; margin-top: 4px;">أدخل رمز الأمان السري للتحكم بالإدارة والتعديل والفواتير:</p>
+      
+      <form onsubmit="submitAdminPassword(event)">
+        <div class="form-group" style="margin-top: 10px;">
+          <input type="password" id="adminPasswordInput" placeholder="أدخل رمز المرور السري..." style="text-align: center; font-size: 18px; font-weight: bold; letter-spacing: 4px;" required />
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: center; margin-top: 12px;">
+          <button type="button" class="btn-secondary" onclick="closeAuthModal()">إلغاء</button>
+          <button type="submit" class="btn-primary">دخول</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- نافذة إضافة / تعديل السيارة -->
@@ -198,7 +232,7 @@
         </div>
 
         <div class="form-group">
-          <label id="lblModel">نوع الموديل / الفئة (دارجة بسوريا) *</label>
+          <label id="lblModel">نوع الموديل / الفئة *</label>
           <select id="carModel" required>
             <optgroup label="🚚 الفانات والشاحنات والبيك أب">
               <option value="اتش 100">اتش 100 - H100 (بيك أب / انتر)</option>
@@ -337,7 +371,7 @@
                 <option value="بدون لوحة">بدون لوحة - Bê Plaqe</option>
               </optgroup>
             </select>
-            <input type="text" id="plateNumber" placeholder="الرقم: مثلاً 123456" style="width: 50%;" required />
+            <input type="text" id="plateNumber" placeholder="الرقم: 12345" style="width: 50%;" required />
           </div>
         </div>
 
@@ -359,13 +393,13 @@
 
         <div class="form-group">
           <label id="lblNotes">ملاحظات مخصصة (تترجم تلقائيًا)</label>
-          <textarea id="carNotes" rows="2" oninput="updateNotesLivePreview()" placeholder="مثال: خالي العلام، موتور وكالة، بويا قطعتين..."></textarea>
+          <textarea id="carNotes" rows="2" oninput="updateNotesLivePreview()" placeholder="مثال: خالي العلام، موتور وكالة..."></textarea>
           <div id="notesLivePreview" class="live-translate-hint" style="display: none;"></div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
           <button type="button" class="btn-secondary" onclick="closeModal()" id="btnCancel">إلغاء</button>
-          <button type="submit" class="btn-primary" id="btnSave">💾 حفظ السيارة أونلاين</button>
+          <button type="submit" class="btn-primary" id="btnSave">💾 حفظ السيارة</button>
         </div>
       </form>
     </div>
@@ -414,7 +448,7 @@
 
       <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
         <button type="button" class="btn-secondary" onclick="closeInvoiceModal()" id="btnInvCancel">إغلاق</button>
-        <button type="button" class="btn-primary" onclick="printAndSaveInvoiceOnline()" id="btnInvPrint">🖨️ طباعة وحفظ الفاتورة سحابيًا</button>
+        <button type="button" class="btn-primary" onclick="printAndSaveInvoiceOnline()" id="btnInvPrint">🖨️ طباعة الفاتورة</button>
       </div>
     </div>
   </div>
@@ -496,8 +530,11 @@
 
   <script>
     const LANG_KEY = 'karao_cars_lang';
+    const AUTH_KEY = 'karao_admin_key';
+
     let currentSelectedCar = null;
     let loadedCarsList = [];
+    let isAdminLoggedIn = !!localStorage.getItem(AUTH_KEY);
 
     function populateYears() {
       const select = document.getElementById('carYear');
@@ -511,59 +548,19 @@
     }
 
     const AUTO_TRANSLATE_DB = [
-      ['اتش 100', 'H100'], ['اتش100', 'H100'], ['h100', 'H100'],
-      ['اتش 1', 'H1'], ['اتش1', 'H1'], ['h1', 'H1'],
-      ['فان', 'Van'], ['الفان', 'Van'], ['بورتير', 'Porter'], ['بورتر', 'Porter'],
-      ['ك 2700', 'K2700'], ['ك2700', 'K2700'], ['k2700', 'K2700'],
-      ['ك 2500', 'K2500'], ['بونغو', 'Bongo'], ['هايس', 'Hiace'],
+      ['اتش 100', 'H100'], ['اتش 1', 'H1'], ['فان', 'Van'], ['بورتير', 'Porter'],
+      ['ك 2700', 'K2700'], ['ك 2500', 'K2500'], ['بونغو', 'Bongo'], ['هايس', 'Hiace'],
       ['سرفيس', 'Servîs (Hiace)'], ['كرنفال', 'Carnival'], ['سوزوكي كاري', 'Suzuki Carry'],
-      ['ميتسوبيشي L200', 'Mitsubishi L200'], ['كانتر', 'Canter'], ['بيك أب عام', 'Pîkap'],
       ['أفانتي', 'Avante'], ['إلنترا', 'Elantra'], ['أكسنت', 'Accent'], ['فيرنا', 'Verna'],
       ['سوناتا', 'Sonata'], ['أزيرا', 'Azera'], ['ريو', 'Rio'], ['سيراتو', 'Cerato'],
-      ['بيكانتو', 'Picanto'], ['مورنينغ', 'Morning'], ['أوبتيما', 'Optima'], ['كادينزا', 'Cadenza'],
+      ['بيكانتو', 'Picanto'], ['أوبتيما', 'Optima'], ['كادينزا', 'Cadenza'],
       ['كورولا', 'Corolla'], ['كامري', 'Camry'], ['يارس', 'Yaris'], ['صني', 'Sunny'],
-      ['تيدا', 'Tiida'], ['مازدا 3', 'Mazda 3'], ['غولف', 'Golf'], ['جيتا', 'Jetta'],
-      ['باسات', 'Passat'], ['أسترا', 'Astra'], ['فيكترا', 'Vectra'], ['ميغان', 'Megane'],
-      ['لوغان', 'Logan'], ['أفيو', 'Aveo'], ['كروز', 'Cruze'], ['لانوس', 'Lanos'],
-      ['نوبيرا', 'Nubira'], ['أوكتافيا', 'Octavia'], ['الرياضة', 'Sport'],
       ['سنتافي', 'Santa Fe'], ['توسان', 'Tucson'], ['سبورتاج', 'Sportage'], ['سورينتو', 'Sorento'],
-      ['موهافي', 'Mohave'], ['لاند كروزر', 'Land Cruiser'], ['برادو', 'Prado'], ['فورتشنر', 'Fortuner'],
-      ['راف فور', 'RAV4'], ['باترول', 'Patrol'], ['سوبر سفاري', 'Super Safari'], ['باجيرو', 'Pajero'],
-      ['شيروكي', 'Cherokee'], ['غراند شيروكي', 'Grand Cherokee'], ['فيتارا', 'Grand Vitara'],
-      ['لكزس جيب', 'Lexus LX'], ['بي ام دبليو X5', 'BMW X5'], ['دفع رباعي عام', 'SUV 4x4'],
-
-      ['خالي العلام', 'Bê Nîşan (Xalî Elam)'], ['خالي علام', 'Bê Nîşan (Xalî Elam)'],
-      ['خالي بخ', 'Bê Boyax'], ['خالي دهان', 'Bê Boyax'], ['بدون صبغ', 'Bê Boyax'],
-      ['قطعة واحدة', 'Yek Parçe'], ['قطعتين', 'Du Parçe'], ['بويا', 'Boyax'],
-      ['دهان', 'Boyax'], ['بخ', 'Boyax'], ['حادث', 'Qeza'], ['بدون حادث', 'Bê Qeza'],
-      ['نظيفة جدا', 'Gelek Paqij'], ['نظيف جدا', 'Gelek Paqij'], ['نظيفة', 'Paqij'], ['نظيف', 'Paqij'],
-      ['ممتازة', 'Pir Baş'], ['ممتاز', 'Pir Baş'], ['وكالة', 'Wekale (Sifir)'], ['وارد كندا', 'Warda Kanada'],
-      ['وارد امريكا', 'Warda Emerîka'], ['وارد دبي', 'Warda Dubayî'], ['مجمرك', 'Gomrikkirî'],
-      ['غير مجمرك', 'Bê Gomrik'], ['بدون جمرك', 'Bê Gomrik'], ['فحص كامل', 'Kontrola Temam'],
-      ['محرك', 'Motor'], ['موتور', 'Motor'], ['كير', 'Gêr'], ['دوزان', 'Dozan'],
-      ['دواليب', 'Lastîk'], ['تواير', 'Lastîk'], ['فتحة سقف', 'Sênrof'], ['بانوراما', 'Panaroma'],
-      ['جلد', 'Çerm'], ['شاشة', 'Ekran'], ['كاميرا', 'Kamera'], ['بصمة', 'Bişkok (Bisme)'],
-      ['اوتوماتيك', 'Otomatîk'], ['أوتوماتيك', 'Otomatîk'], ['عادي', 'Manuwel'],
-      ['ديزل', 'Dîzel'], ['بنزين', 'Benzîn'], ['كاش', 'Cash'], ['اقساط', 'Bi Qist'],
-
-      ['تويوتا', 'Toyota'], ['هيونداي', 'Hyundai'], ['كيا', 'Kia'], ['مرسيدس', 'Mercedes-Benz'],
-      ['بي ام دبليو', 'BMW'], ['نيسان', 'Nissan'], ['فورد', 'Ford'], ['شيفروليه', 'Chevrolet'],
-      ['فولكس فاجن', 'Volkswagen'], ['هوندا', 'Honda'], ['مازدا', 'Mazda'], ['ميتسوبيشي', 'Mitsubishi'],
-      ['أودي', 'Audi'], ['جيب', 'Jeep'], ['لاند روفر', 'Land Rover'], ['رينو', 'Renault'],
-      ['بيجو', 'Peugeot'], ['سوزوكي', 'Suzuki'], ['لكزس', 'Lexus'],
-
-      ['أبيض لؤلؤي', 'Spî Mirwarî'], ['أبيض', 'Spî'], ['أسود ملكي', 'Reşê Melikî'],
-      ['أسود', 'Reş'], ['فضي', 'Zîvî'], ['رمادي', 'Gewr'], ['أحمر', 'Sor'], ['أزرق', 'Şîn'],
-
-      ['قامشلو', 'Qamişlo'], ['كوباني', 'Kobanî'], ['الحسكة', 'Hesekê'],
-      ['منبج', 'Minbic'], ['دير الزور', 'Dêra Zorê'], ['الرقة', 'Reqa'],
-      ['عفرين', 'Efrîn'], ['عامودا', 'Amûdê'], ['ديريك', 'Dêrik'],
-      ['الطبقة', 'Tebqa'], ['الدرباسية', 'Dirbêsiyê'], ['رميلان', 'Rimêlan'],
-      ['تل أبيض', 'Girê Spî'], ['رأس العين', 'Serê Kaniyê'], ['الشدادي', 'Şedadê'],
-      ['دمشق', 'Şam'], ['حلب', 'Heleb'], ['حمص', 'Hims'], ['حماة', 'Hema'],
-      ['اللاذقية', 'Laziqiye'], ['طرطوس', 'Tertûs'], ['إدلب', 'Idlib'],
-      ['درعا', 'Der\'a'], ['السويداء', 'Siwêda'], ['ريف دمشق', 'Rîfa Şamê'],
-      ['القنيطرة', 'Quneytira'], ['بدون لوحة', 'Bê Plaqe']
+      ['لاند كروزر', 'Land Cruiser'], ['برادو', 'Prado'], ['باترول', 'Patrol'], ['الرياضة', 'Sport'],
+      ['خالي العلام', 'Bê Nîşan (Xalî Elam)'], ['خالي بخ', 'Bê Boyax'], ['بويا', 'Boyax'], ['نظيفة', 'Paqij'],
+      ['أبيض لؤلؤي', 'Spî Mirwarî'], ['أبيض', 'Spî'], ['أسود', 'Reş'], ['فضي', 'Zîvî'], ['رمادي', 'Gewr'],
+      ['قامشلو', 'Qamişlo'], ['كوباني', 'Kobanî'], ['الحسكة', 'Hesekê'], ['منبج', 'Minbic'], ['دير الزور', 'Dêra Zorê'],
+      ['دمشق', 'Şam'], ['حلب', 'Heleb'], ['حمص', 'Hims'], ['اللاذقية', 'Laziqiye'], ['بدون لوحة', 'Bê Plaqe']
     ];
 
     const ARABIC_TO_LATIN_CHARS = {
@@ -620,11 +617,11 @@
     const translations = {
       ar: {
         appTitle: "شركة بشار فواز كرعو وشركاه",
-        appDesc: "النظام السحابي المباشر لإدارة وسجل السيارات",
-        addCar: "➕ إضافة سيارة سحابية",
+        appDesc: "معرض وسجل السيارات وفواتير البيع والشراء",
+        addCar: "➕ إضافة سيارة",
         exportExcel: "📊 تصدير Excel",
         searchPlaceholder: "🔍 ابحث بالاسم، الموديل (H100, H1, فان)، الشاصي، اللوحة...",
-        lblStatTotal: "إجمالي السيارات",
+        lblStatTotal: "إجمالي المعروض",
         lblStatAvailable: "المتاحة للبيع",
         lblStatSold: "السيارات المباعة",
         lblModel: "الموديل:",
@@ -633,7 +630,7 @@
         lblVIN: "الشاصي:",
         lblPrice: "السعر:",
         lblDate: "التاريخ:",
-        emptyMsg: "لا توجد سيارات مطابقة في السيرفر. اضغط على 'إضافة سيارة' للبدء.",
+        emptyMsg: "لا توجد سيارات مطابقة في المعرض حاليًا.",
         modalAddTitle: "إضافة سيارة جديدة",
         modalEditTitle: "تعديل بيانات السيارة",
         btnInvoice: "🖨️ فاتورة",
@@ -643,7 +640,7 @@
       },
       ku: {
         appTitle: "Şîrketa Beşar Fewaz Kere'o",
-        appDesc: "Pergala serhêl a qeyda otomobîlan û fatûreyan",
+        appDesc: "Pêşangeh û qeyda otomobîlan û fatûreyan",
         addCar: "➕ Otomobîlê Zêde Bike",
         exportExcel: "📊 Ji bo Excelê Derxîne",
         searchPlaceholder: "🔍 Li gorî nav, model (H100, H1, Van), şasî, plaqe...",
@@ -656,7 +653,7 @@
         lblVIN: "Şasî:",
         lblPrice: "Biha:",
         lblDate: "Dîrok:",
-        emptyMsg: "Ti otomobîl nehat dîtin. 'Otomobîlê Zêde Bike' bitikîne.",
+        emptyMsg: "Ti otomobîl nehat dîtin.",
         modalAddTitle: "Zêdekirina Otomobîla Nû",
         modalEditTitle: "Guherandina Agahiyên Otomobîlê",
         btnInvoice: "🖨️ Fatûre",
@@ -695,10 +692,76 @@
       document.getElementById('lblStatAvailable').innerText = t.lblStatAvailable;
       document.getElementById('lblStatSold').innerText = t.lblStatSold;
 
+      updateAdminUI();
       renderCarsList(loadedCarsList);
     }
 
-    // ==================== [ الربط مع السيرفر أونلاين ] ==================== //
+    // ==================== [ إدارة الصلاحيات والأمان ] ==================== //
+
+    function updateAdminUI() {
+      const btn = document.getElementById('btnAdminAuth');
+      if (isAdminLoggedIn) {
+        document.body.classList.add('is-admin');
+        btn.innerText = currentLang === 'ku' ? '🔓 Derketin (Logout)' : '🔓 خروج الإدارة';
+        btn.classList.add('logged');
+      } else {
+        document.body.classList.remove('is-admin');
+        btn.innerText = currentLang === 'ku' ? '🔐 Têketina Rêveberiyê' : '🔐 دخول الإدارة';
+        btn.classList.remove('logged');
+      }
+    }
+
+    function handleAdminAuthClick() {
+      if (isAdminLoggedIn) {
+        if (confirm(currentLang === 'ku' ? 'Tu dixwazî derkevî?' : 'هل ترغب في تسجيل خروج الإدارة والعودة لوضع الزوار؟')) {
+          localStorage.removeItem(AUTH_KEY);
+          isAdminLoggedIn = false;
+          updateAdminUI();
+          renderCarsList(loadedCarsList);
+        }
+      } else {
+        document.getElementById('adminPasswordInput').value = '';
+        document.getElementById('authModal').classList.add('active');
+      }
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('active');
+    }
+
+    async function submitAdminPassword(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('adminPasswordInput').value.trim();
+
+      try {
+        const res = await fetch('/api/admin/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwd })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem(AUTH_KEY, pwd);
+          isAdminLoggedIn = true;
+          closeAuthModal();
+          updateAdminUI();
+          renderCarsList(loadedCarsList);
+          alert('✅ مرحبًا بك! تم تفعيل وضع الإدارة.');
+        } else {
+          alert('❌ رمز المرور غير صحيح!');
+        }
+      } catch (err) {
+        alert('فشل الاتصال بالسيرفر للتحقق');
+      }
+    }
+
+    function getAdminHeader() {
+      const key = localStorage.getItem(AUTH_KEY) || '';
+      return { 'x-admin-key': key };
+    }
+
+    // ==================== [ الربط مع السيرفر ] ==================== //
 
     async function loadOnlineCars() {
       const search = document.getElementById('searchInput').value.trim();
@@ -710,7 +773,7 @@
         renderCarsList(loadedCarsList);
         loadStats();
       } catch (err) {
-        console.error('فشل في جلب البيانات من السيرفر:', err);
+        console.error('فشل في جلب البيانات:', err);
       }
     }
 
@@ -786,7 +849,8 @@
 
           ${displayNotes ? `<div class="card-notes-box">📝 <strong>${currentLang === 'ku' ? 'Têbînî: ' : 'ملاحظات: '}</strong>${displayNotes}</div>` : ''}
 
-          <div class="card-actions">
+          <!-- أزرار الإجراءات تظهر للإدارة فقط -->
+          <div class="card-actions admin-grid">
             <button class="btn-invoice" onclick="openInvoiceModal(${c.id})">${t.btnInvoice}</button>
             <button class="btn-secondary" onclick="editCarOnline(${c.id})">${t.btnEdit}</button>
             <button class="btn-danger" onclick="deleteCarOnline(${c.id})">${t.btnDelete}</button>
@@ -831,26 +895,26 @@
       };
 
       try {
+        const headers = {
+          'Content-Type': 'application/json',
+          ...getAdminHeader()
+        };
+
+        let res;
         if (idInput === '-1') {
-          // إضافة
-          await fetch('/api/cars', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+          res = await fetch('/api/cars', { method: 'POST', headers, body: JSON.stringify(payload) });
         } else {
-          // تعديل
-          await fetch(`/api/cars/${idInput}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+          res = await fetch(`/api/cars/${idInput}`, { method: 'PUT', headers, body: JSON.stringify(payload) });
         }
 
-        closeModal();
-        loadOnlineCars();
+        if (res.ok) {
+          closeModal();
+          loadOnlineCars();
+        } else {
+          alert('فشل الحفظ: يرجى التأكد من تسجيل دخول الإدارة أولاً!');
+        }
       } catch (err) {
-        alert('فشل في حفظ البيانات على السيرفر!');
+        alert('حدث خطأ أثناء الاتصال بالسيرفر!');
       }
     }
 
@@ -885,8 +949,15 @@
       const t = translations[currentLang];
       if (!confirm(t.confirmDelete)) return;
       try {
-        await fetch(`/api/cars/${id}`, { method: 'DELETE' });
-        loadOnlineCars();
+        const res = await fetch(`/api/cars/${id}`, {
+          method: 'DELETE',
+          headers: getAdminHeader()
+        });
+        if (res.ok) {
+          loadOnlineCars();
+        } else {
+          alert('غير مصرح لك بالحذف! يرجى تسجيل دخول الإدارة.');
+        }
       } catch (err) {
         alert('فشل في حذف السيارة!');
       }
@@ -916,11 +987,13 @@
       const price = document.getElementById('finalPrice').value || currentSelectedCar.car_price || '0';
       const today = new Date().toISOString().split('T')[0];
 
-      // حفظ الفاتورة في قاعدة البيانات أونلاين
       try {
         await fetch('/api/invoices', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAdminHeader()
+          },
           body: JSON.stringify({
             invoice_no: invNo,
             type: invType,
@@ -933,7 +1006,6 @@
         });
       } catch (err) {}
 
-      // إعداد قالب الطباعة
       if (currentLang === 'ku') {
         document.getElementById('invPrintCoName').innerText = "ŞÎRKETA BEŞAR FEWAZ KERE'O Û HEVPARÊN WÎ";
         document.getElementById('invPrintCoSub').innerText = "BASHAR FAWAZ KARAO & PARTNERS";
