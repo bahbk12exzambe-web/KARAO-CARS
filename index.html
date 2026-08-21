@@ -17,6 +17,7 @@
       --text-muted: #64748b;
       --danger: #ef4444;
       --success: #10b981;
+      --warning: #f59e0b;
       --purple: #7c3aed;
     }
 
@@ -49,6 +50,16 @@
     .stat-val { font-size: 16px; font-weight: 900; color: var(--primary); }
     .stat-lbl { font-size: 10px; color: var(--text-muted); font-weight: bold; }
 
+    /* شريط تصفية الحالة السريعة */
+    .filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+    .filter-tab-btn {
+      padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; border: 1px solid var(--border);
+      background: #fff; color: #475569; cursor: pointer; white-space: nowrap; transition: all 0.2s;
+    }
+    .filter-tab-btn.active {
+      background: #1e3a8a; color: #fff; border-color: #1e3a8a;
+    }
+
     .admin-only { display: none !important; }
     body.is-admin .admin-only { display: inline-flex !important; }
     body.is-admin .admin-grid { display: grid !important; }
@@ -65,19 +76,48 @@
     .search-box { flex: 1; }
     .search-box input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; outline: none; background: #fff; }
 
-    /* بطاقة السيارة مع الصورة وتنسيق جنب بعض وورا بعض */
+    /* بطاقة السيارة مع شارات الحالة */
     .cars-list { display: flex; flex-direction: column; gap: 14px; }
     .car-card {
       background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
       overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.04); display: flex; flex-direction: column;
+      position: relative;
     }
 
-    .car-image-container {
-      width: 100%; height: 210px; background: #e2e8f0; position: relative; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
+    .car-gallery-container { background: #0f172a; position: relative; width: 100%; display: flex; flex-direction: column; }
+    .main-img-box {
+      width: 100%; height: 230px; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      background: #1e293b; overflow: hidden;
     }
-    .car-img { width: 100%; height: 100%; object-fit: cover; }
-    .car-no-img { font-size: 48px; color: #94a3b8; }
+    .main-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s; }
+    .main-img-box:hover img { transform: scale(1.02); }
+
+    /* شارات الحالة الأنيقة */
+    .status-badge-overlay {
+      position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 8px;
+      font-size: 12px; font-weight: 900; display: flex; align-items: center; gap: 5px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25); z-index: 2; backdrop-filter: blur(4px);
+    }
+    .status-available { background: #10b981; color: #ffffff; border: 1px solid #059669; }
+    .status-sold { background: #dc2626; color: #ffffff; border: 1px solid #b91c1c; }
+    .status-reserved { background: #f59e0b; color: #ffffff; border: 1px solid #d97706; }
+
+    .photo-count-badge {
+      position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.75); color: #fff;
+      font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 6px; backdrop-filter: blur(4px);
+    }
+    .zoom-icon-badge {
+      position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.6); color: #fff;
+      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+
+    .thumb-strip { display: flex; gap: 6px; padding: 6px 10px; background: #0b1120; overflow-x: auto; }
+    .thumb-item {
+      width: 50px; height: 40px; border-radius: 5px; overflow: hidden; cursor: pointer; flex-shrink: 0;
+      border: 2px solid transparent; opacity: 0.7; transition: all 0.2s;
+    }
+    .thumb-item.active, .thumb-item:hover { border-color: var(--primary); opacity: 1; transform: translateY(-1px); }
+    .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
 
     .car-card-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 
@@ -88,7 +128,7 @@
     .car-title-badge { font-size: 17px; font-weight: 900; color: #1e3a8a; }
     .car-plate-badge { background: #0f172a; color: #fff; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 6px; }
 
-    /* مصفوفة المواصفات (جنب بعض) */
+    /* مصفوفة المواصفات */
     .specs-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc;
       padding: 10px; border-radius: 10px; border: 1px solid #f1f5f9;
@@ -111,21 +151,42 @@
     .card-actions { display: none; grid-template-columns: 2fr 1fr 1fr; gap: 6px; margin-top: 4px; }
     .empty-state { text-align: center; padding: 35px 20px; background: #fff; border-radius: 14px; color: var(--text-muted); font-size: 13px; }
 
-    /* النوافذ المنبثقة */
+    /* تكبير الصور (Lightbox) */
+    #lightboxModal {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92); z-index: 10000;
+      display: none; align-items: center; justify-content: center; flex-direction: column; padding: 15px;
+    }
+    #lightboxModal.active { display: flex; }
+    .lightbox-img-wrapper { position: relative; max-width: 90vw; max-height: 80vh; display: flex; align-items: center; justify-content: center; }
+    #lightboxImg { max-width: 90vw; max-height: 75vh; object-fit: contain; border-radius: 8px; }
+    .lightbox-btn {
+      position: absolute; background: rgba(255,255,255,0.2); color: white; border: none;
+      width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+    }
+    .lightbox-btn:hover { background: rgba(255,255,255,0.4); }
+    .lb-close { top: 20px; right: 20px; font-size: 22px; }
+    .lb-prev { left: 15px; }
+    .lb-next { right: 15px; }
+    .lb-counter { color: #cbd5e1; font-size: 13px; margin-top: 10px; font-weight: bold; }
+
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; padding: 12px; z-index: 1000; }
     .modal-overlay.active { display: flex; }
-    .modal { background: white; border-radius: 16px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .modal { background: white; border-radius: 16px; max-width: 540px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
     .form-group label { font-size: 12px; font-weight: bold; color: #475569; }
     .form-group select, .form-group input, .form-group textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
     .live-translate-hint { font-size: 11px; color: var(--purple); background: #faf5ff; padding: 6px 8px; border-radius: 6px; margin-top: 4px; }
 
-    .image-preview-box {
-      width: 100%; height: 130px; border-radius: 8px; background: #f8fafc; border: 2px dashed #cbd5e1;
-      display: flex; align-items: center; justify-content: center; overflow: hidden; margin-top: 4px;
+    .multi-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 6px; margin-top: 6px; }
+    .preview-card-item { position: relative; height: 60px; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; }
+    .preview-card-item img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-del-btn {
+      position: absolute; top: 2px; right: 2px; background: rgba(220,38,38,0.85); color: white;
+      border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 11px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
-    .image-preview-box img { width: 100%; height: 100%; object-fit: cover; }
 
     #invoicePrintArea { display: none; }
     @media print {
@@ -163,7 +224,7 @@
         </div>
       </div>
 
-      <!-- إحصائيات المعرض -->
+      <!-- الإحصائيات -->
       <div class="stats-bar">
         <div class="stat-box">
           <div class="stat-val" id="statTotal">0</div>
@@ -174,28 +235,46 @@
           <div class="stat-lbl" id="lblStatAvailable">المتاحة للبيع</div>
         </div>
         <div class="stat-box">
-          <div class="stat-val" id="statSold" style="color: #64748b;">0</div>
-          <div class="stat-lbl" id="lblStatSold">السيارات المباعة</div>
+          <div class="stat-val" id="statSold" style="color: #dc2626;">0</div>
+          <div class="stat-lbl" id="lblStatSold">تم البيع بنجاح</div>
         </div>
       </div>
 
-      <!-- أزرار الإدارة -->
       <div class="btn-grid admin-grid">
-        <button class="btn-primary" onclick="openModal()" id="btnAddCar">➕ إضافة سيارة مع صورة</button>
+        <button class="btn-primary" onclick="openModal()" id="btnAddCar">➕ إضافة سيارة جديدة</button>
         <button class="btn-success" onclick="exportToExcel()" id="btnExportExcel">📊 تصدير Excel</button>
       </div>
     </div>
 
-    <!-- شريط البحث -->
+    <!-- شريط البحث السريع -->
     <div class="toolbar">
       <div class="search-box">
         <input type="text" id="searchInput" oninput="loadOnlineCars()" placeholder="🔍 ابحث بالاسم، الموديل (H100, H1, فان)، الشاصي، اللوحة..." />
       </div>
     </div>
 
+    <!-- أزرار تصفية حالة السيارة -->
+    <div class="filter-tabs">
+      <button class="filter-tab-btn active" id="tabAll" onclick="setStatusFilter('all')">عرض الكل (Hemû)</button>
+      <button class="filter-tab-btn" id="tabAvailable" onclick="setStatusFilter('available')">🟢 متوفرة للبيع (Berdest)</button>
+      <button class="filter-tab-btn" id="tabSold" onclick="setStatusFilter('sold')">🔴 تم البيع بنجاح (Firotî)</button>
+      <button class="filter-tab-btn" id="tabReserved" onclick="setStatusFilter('reserved')">🟡 محجوزة (Rezerv)</button>
+    </div>
+
     <!-- قائمة البطاقات المنظمة -->
     <div id="carsContainer" class="cars-list"></div>
     <div id="emptyMessage" class="empty-state" style="display: none;"></div>
+  </div>
+
+  <!-- نافذة تكبير الصور ملء الشاشة (Lightbox) -->
+  <div id="lightboxModal" onclick="closeLightbox(event)">
+    <button class="lightbox-btn lb-close" onclick="closeLightboxDirect()">✕</button>
+    <button class="lightbox-btn lb-prev" onclick="prevLightboxImage(event)">❮</button>
+    <div class="lightbox-img-wrapper" onclick="event.stopPropagation()">
+      <img id="lightboxImg" src="" alt="تكبير الصورة" />
+    </div>
+    <button class="lightbox-btn lb-next" onclick="nextLightboxImage(event)">❯</button>
+    <div class="lb-counter" id="lightboxCounter">1 / 1</div>
   </div>
 
   <!-- نافذة تسجيل الدخول -->
@@ -205,7 +284,6 @@
         <h2 style="font-size: 16px;">🔐 تسجيل الدخول بالبريد الإلكتروني</h2>
         <button class="btn-secondary" style="padding: 4px 10px;" onclick="closeAuthModal()">✕</button>
       </div>
-      
       <form onsubmit="submitEmailLogin(event)">
         <div class="form-group">
           <label>البريد الإلكتروني *</label>
@@ -251,7 +329,7 @@
     </div>
   </div>
 
-  <!-- نافذة إضافة / تعديل السيارة مع الصورة -->
+  <!-- نافذة إضافة / تعديل السيارة مع حالة السيارة -->
   <div id="carModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
@@ -261,15 +339,22 @@
       
       <form id="carForm" onsubmit="saveCarOnline(event)">
         <input type="hidden" id="carIndex" value="-1" />
-        <input type="hidden" id="carImageData" value="" />
 
-        <!-- اختيار ورفع صورة السيارة -->
+        <!-- رفع الصور -->
         <div class="form-group">
-          <label>📸 صورة السيارة (من الكاميرا أو المعرض)</label>
-          <input type="file" id="carImageInput" accept="image/*" onchange="handleImageSelection(event)" />
-          <div id="imagePreviewBox" class="image-preview-box">
-            <span style="font-size: 12px; color: #94a3b8;">لم يتم اختيار صورة بعد</span>
-          </div>
+          <label>📸 صور السيارة (حتى 5 صور)</label>
+          <input type="file" id="carMultipleImagesInput" accept="image/*" multiple onchange="handleMultipleImagesUpload(event)" />
+          <div id="multiImagesPreviewGrid" class="multi-preview-grid"></div>
+        </div>
+
+        <!-- حالة السيارة -->
+        <div class="form-group">
+          <label id="lblStatusForm">حالة السيارة المعروضة *</label>
+          <select id="carStatus" required>
+            <option value="available">🟢 متوفرة للبيع / جاهزة للتسليم (Berdest e)</option>
+            <option value="sold">🔴 تم البيع بنجاح (Hat Firotin)</option>
+            <option value="reserved">🟡 محجوزة / قيد الاتفاق (Rezervkirî)</option>
+          </select>
         </div>
 
         <div class="form-group">
@@ -597,7 +682,12 @@
 
     let currentSelectedCar = null;
     let loadedCarsList = [];
+    let currentStatusFilter = 'all';
     let loggedAdminEmail = localStorage.getItem(AUTH_KEY) || '';
+
+    let formImagesArray = [];
+    let currentLightboxImages = [];
+    let currentLightboxIndex = 0;
 
     function populateYears() {
       const select = document.getElementById('carYear');
@@ -610,19 +700,97 @@
       }
     }
 
-    // قراءة الصورة وتحويلها لـ Base64
-    function handleImageSelection(e) {
-      const file = e.target.files[0];
-      if (!file) return;
+    function handleMultipleImagesUpload(e) {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
 
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const base64Data = evt.target.result;
-        document.getElementById('carImageData').value = base64Data;
-        document.getElementById('imagePreviewBox').innerHTML = `<img src="${base64Data}" alt="معاينة" />`;
-      };
-      reader.readAsDataURL(file);
+      files.forEach(file => {
+        if (formImagesArray.length >= 6) {
+          alert('الحد الأقصى 6 صور لكل سيارة.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          formImagesArray.push(evt.target.result);
+          renderFormImagesPreview();
+        };
+        reader.readAsDataURL(file);
+      });
+      e.target.value = '';
     }
+
+    function removeFormImage(idx) {
+      formImagesArray.splice(idx, 1);
+      renderFormImagesPreview();
+    }
+
+    function renderFormImagesPreview() {
+      const grid = document.getElementById('multiImagesPreviewGrid');
+      grid.innerHTML = '';
+      formImagesArray.forEach((imgBase64, idx) => {
+        const item = document.createElement('div');
+        item.className = 'preview-card-item';
+        item.innerHTML = `
+          <img src="${imgBase64}" alt="صورة ${idx+1}" />
+          <button type="button" class="preview-del-btn" onclick="removeFormImage(${idx})">✕</button>
+        `;
+        grid.appendChild(item);
+      });
+    }
+
+    function openLightbox(imagesJsonStr, startIndex = 0) {
+      try {
+        let imgs = [];
+        if (typeof imagesJsonStr === 'string' && imagesJsonStr.startsWith('[')) {
+          imgs = JSON.parse(imagesJsonStr);
+        } else if (imagesJsonStr) {
+          imgs = [imagesJsonStr];
+        }
+
+        if (!imgs || !imgs.length) return;
+
+        currentLightboxImages = imgs;
+        currentLightboxIndex = startIndex;
+        updateLightboxView();
+        document.getElementById('lightboxModal').classList.add('active');
+      } catch (err) {}
+    }
+
+    function updateLightboxView() {
+      if (!currentLightboxImages.length) return;
+      document.getElementById('lightboxImg').src = currentLightboxImages[currentLightboxIndex];
+      document.getElementById('lightboxCounter').innerText = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
+    }
+
+    function prevLightboxImage(e) {
+      if (e) e.stopPropagation();
+      currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+      updateLightboxView();
+    }
+
+    function nextLightboxImage(e) {
+      if (e) e.stopPropagation();
+      currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+      updateLightboxView();
+    }
+
+    function closeLightbox(e) {
+      if (e.target.id === 'lightboxModal') {
+        closeLightboxDirect();
+      }
+    }
+
+    function closeLightboxDirect() {
+      document.getElementById('lightboxModal').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (document.getElementById('lightboxModal').classList.contains('active')) {
+        if (e.key === 'Escape') closeLightboxDirect();
+        if (e.key === 'ArrowLeft') prevLightboxImage();
+        if (e.key === 'ArrowRight') nextLightboxImage();
+      }
+    });
 
     const AUTO_TRANSLATE_DB = [
       ['اتش 100', 'H100'], ['اتش 1', 'H1'], ['فان', 'Van'], ['بورتير', 'Porter'],
@@ -695,25 +863,32 @@
       ar: {
         appTitle: "شركة بشار فواز كرعو وشركاه",
         appDesc: "معرض وسجل السيارات وفواتير البيع والشراء",
-        addCar: "➕ إضافة سيارة مع صورة",
+        addCar: "➕ إضافة سيارة جديدة",
         exportExcel: "📊 تصدير Excel",
         searchPlaceholder: "🔍 ابحث بالاسم، الموديل (H100, H1, فان)، الشاصي، اللوحة...",
         lblStatTotal: "إجمالي المعروض",
         lblStatAvailable: "المتاحة للبيع",
-        lblStatSold: "السيارات المباعة",
+        lblStatSold: "تم البيع بنجاح",
+        tabAll: "عرض الكل",
+        tabAvailable: "🟢 متوفرة للبيع",
+        tabSold: "🔴 تم البيع بنجاح",
+        tabReserved: "🟡 محجوزة",
         lblModel: "الموديل:",
         lblYear: "سنة الصنع:",
         lblColor: "اللون:",
         lblVIN: "الشاصي:",
         lblPrice: "السعر:",
         lblDate: "التاريخ:",
-        emptyMsg: "لا توجد سيارات مطابقة في المعرض حاليًا.",
+        emptyMsg: "لا توجد سيارات مطابقة في هذا القسم حاليًا.",
         modalAddTitle: "إضافة سيارة جديدة",
         modalEditTitle: "تعديل بيانات السيارة",
         btnInvoice: "🖨️ فاتورة",
         btnEdit: "✏️ تعديل",
         btnDelete: "🗑️ حذف",
-        confirmDelete: "هل أنت متأكد من حذف هذه السيارة نهائيًا من السيرفر؟"
+        confirmDelete: "هل أنت متأكد من حذف هذه السيارة نهائيًا من السيرفر؟",
+        statusAvailableTxt: "🟢 متوفرة للبيع",
+        statusSoldTxt: "🔴 تم البيع بنجاح",
+        statusReservedTxt: "🟡 محجوزة"
       },
       ku: {
         appTitle: "Şîrketa Beşar Fewaz Kere'o",
@@ -723,20 +898,27 @@
         searchPlaceholder: "🔍 Li gorî nav, model (H100, H1, Van), şasî, plaqe...",
         lblStatTotal: "Hemû Otomobîl",
         lblStatAvailable: "Yên Berdest",
-        lblStatSold: "Yên Firotî",
+        lblStatSold: "Hat Firotin",
+        tabAll: "Hemû (All)",
+        tabAvailable: "🟢 Berdest e (Available)",
+        tabSold: "🔴 Hat Firotin (Sold)",
+        tabReserved: "🟡 Rezervkirî (Reserved)",
         lblModel: "Model:",
         lblYear: "Sala Çêkirinê:",
         lblColor: "Reng:",
         lblVIN: "Şasî:",
         lblPrice: "Biha:",
         lblDate: "Dîrok:",
-        emptyMsg: "Ti otomobîl nehat dîtin.",
+        emptyMsg: "Ti otomobîl di vê beşê de nehat dîtin.",
         modalAddTitle: "Zêdekirina Otomobîla Nû",
         modalEditTitle: "Guherandina Agahiyên Otomobîlê",
         btnInvoice: "🖨️ Fatûre",
         btnEdit: "✏️ Biguherîne",
         btnDelete: "🗑️ Jê bibe",
-        confirmDelete: "Ma tu piştrast î ku dixwazî vê otomobîlê jê bibî?"
+        confirmDelete: "Ma tu piştrast î ku dixwazî vê otomobîlê jê bibî?",
+        statusAvailableTxt: "🟢 Berdest e",
+        statusSoldTxt: "🔴 Hat Firotin",
+        statusReservedTxt: "🟡 Rezervkirî"
       }
     };
 
@@ -769,7 +951,24 @@
       document.getElementById('lblStatAvailable').innerText = t.lblStatAvailable;
       document.getElementById('lblStatSold').innerText = t.lblStatSold;
 
+      document.getElementById('tabAll').innerText = t.tabAll;
+      document.getElementById('tabAvailable').innerText = t.tabAvailable;
+      document.getElementById('tabSold').innerText = t.tabSold;
+      document.getElementById('tabReserved').innerText = t.tabReserved;
+
       updateAdminUI();
+      renderCarsList(loadedCarsList);
+    }
+
+    function setStatusFilter(status) {
+      currentStatusFilter = status;
+      document.querySelectorAll('.filter-tab-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (status === 'all') document.getElementById('tabAll').classList.add('active');
+      if (status === 'available') document.getElementById('tabAvailable').classList.add('active');
+      if (status === 'sold') document.getElementById('tabSold').classList.add('active');
+      if (status === 'reserved') document.getElementById('tabReserved').classList.add('active');
+
       renderCarsList(loadedCarsList);
     }
 
@@ -849,10 +1048,7 @@
       try {
         const res = await fetch('/api/auth/update-account', {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-token': loggedAdminEmail
-          },
+          headers: { 'Content-Type': 'application/json', 'x-admin-token': loggedAdminEmail },
           body: JSON.stringify({ newEmail, oldPassword, newPassword })
         });
         const data = await res.json();
@@ -896,7 +1092,7 @@
       } catch (err) {}
     }
 
-    /* عرض البطاقات مع الصور والمواصفات جنب بعض وورا بعض */
+    /* عرض البطاقات مع شارة الحالة وصيغة العرض الجميلة */
     function renderCarsList(cars) {
       const t = translations[currentLang];
       const container = document.getElementById('carsContainer');
@@ -904,7 +1100,13 @@
 
       container.innerHTML = '';
 
-      if (cars.length === 0) {
+      // فلترة السيارات حسب التبويب المختار
+      let filtered = cars;
+      if (currentStatusFilter !== 'all') {
+        filtered = filtered.filter(c => (c.status || 'available') === currentStatusFilter);
+      }
+
+      if (filtered.length === 0) {
         emptyMessage.innerText = t.emptyMsg;
         emptyMessage.style.display = 'block';
         return;
@@ -912,37 +1114,84 @@
         emptyMessage.style.display = 'none';
       }
 
-      cars.forEach((c) => {
+      filtered.forEach((c) => {
         const displayCarName = autoTranslate(c.car_name, currentLang);
         const displayCarModel = autoTranslate(c.car_model, currentLang);
         const displayCarColor = autoTranslate(c.car_color, currentLang);
         const displayPlate = autoTranslate(c.plate_number, currentLang);
         const displayNotes = autoTranslate(c.car_notes || '', currentLang);
 
-        const isSold = c.status === 'sold';
+        const status = c.status || 'available';
+        let statusBadgeHtml = '';
+        if (status === 'sold') {
+          statusBadgeHtml = `<div class="status-badge-overlay status-sold">🔴 ${t.statusSoldTxt}</div>`;
+        } else if (status === 'reserved') {
+          statusBadgeHtml = `<div class="status-badge-overlay status-reserved">🟡 ${t.statusReservedTxt}</div>`;
+        } else {
+          statusBadgeHtml = `<div class="status-badge-overlay status-available">🟢 ${t.statusAvailableTxt}</div>`;
+        }
 
+        let carImgs = [];
+        try {
+          if (c.car_image && c.car_image.startsWith('[')) {
+            carImgs = JSON.parse(c.car_image);
+          } else if (c.car_image) {
+            carImgs = [c.car_image];
+          }
+        } catch (e) {
+          carImgs = c.car_image ? [c.car_image] : [];
+        }
+
+        const cardId = `car_card_${c.id}`;
         const card = document.createElement('div');
         card.className = 'car-card';
+        card.id = cardId;
+
+        let galleryHtml = '';
+        if (carImgs.length > 0) {
+          const mainImgSrc = carImgs[0];
+          const escapedImgsJson = JSON.stringify(carImgs).replace(/"/g, '&quot;');
+
+          let thumbsHtml = '';
+          if (carImgs.length > 1) {
+            thumbsHtml = `<div class="thumb-strip">` + carImgs.map((img, idx) => `
+              <div class="thumb-item ${idx === 0 ? 'active' : ''}" onclick="switchCardMainImage('${cardId}', '${img}', ${idx}, '${escapedImgsJson}')">
+                <img src="${img}" alt="صورة ${idx+1}" />
+              </div>
+            `).join('') + `</div>`;
+          }
+
+          galleryHtml = `
+            <div class="car-gallery-container">
+              ${statusBadgeHtml}
+              <div class="main-img-box" onclick="openLightbox('${escapedImgsJson}', 0)">
+                <img id="${cardId}_mainImg" src="${mainImgSrc}" alt="${displayCarName}" />
+                <div class="zoom-icon-badge">🔍</div>
+                <div class="photo-count-badge">📷 ${carImgs.length} ${currentLang === 'ku' ? 'Wêne' : 'صور'}</div>
+              </div>
+              ${thumbsHtml}
+            </div>
+          `;
+        } else {
+          galleryHtml = `
+            <div class="car-gallery-container">
+              ${statusBadgeHtml}
+              <div class="main-img-box" style="background:#f1f5f9;">
+                <span style="font-size:48px;">🚗</span>
+              </div>
+            </div>
+          `;
+        }
+
         card.innerHTML = `
-          <!-- صورة السيارة في الأعلى -->
-          <div class="car-image-container">
-            ${c.car_image 
-              ? `<img src="${c.car_image}" class="car-img" alt="${displayCarName}" />` 
-              : `<div class="car-no-img">🚗</div>`
-            }
-          </div>
+          ${galleryHtml}
 
           <div class="car-card-body">
-            <!-- العنوان واللوحة -->
             <div class="card-header-line">
-              <div class="car-title-badge">
-                ${displayCarName} - ${displayCarModel}
-                ${isSold ? `<span style="font-size: 11px; background: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">مباعة / Firotî</span>` : ''}
-              </div>
+              <div class="car-title-badge">${displayCarName} - ${displayCarModel}</div>
               <div class="car-plate-badge">${displayPlate}</div>
             </div>
 
-            <!-- مصفوفة المواصفات (جنب بعض وورا بعض) -->
             <div class="specs-grid">
               <div class="spec-box">
                 <span class="spec-lbl">${t.lblYear}</span>
@@ -966,10 +1215,8 @@
               </div>
             </div>
 
-            <!-- الملاحظات المترجمة -->
             ${displayNotes ? `<div class="card-notes-box">📝 <strong>${currentLang === 'ku' ? 'Têbînî: ' : 'ملاحظات: '}</strong>${displayNotes}</div>` : ''}
 
-            <!-- أزرار التحكم (للإدارة فقط) -->
             <div class="card-actions admin-grid">
               <button class="btn-invoice" onclick="openInvoiceModal(${c.id})">${t.btnInvoice}</button>
               <button class="btn-secondary" onclick="editCarOnline(${c.id})">${t.btnEdit}</button>
@@ -981,12 +1228,29 @@
       });
     }
 
+    function switchCardMainImage(cardId, imgSrc, idx, imgsJson) {
+      const imgEl = document.getElementById(`${cardId}_mainImg`);
+      if (imgEl) imgEl.src = imgSrc;
+      const box = imgEl.parentElement;
+      box.onclick = () => openLightbox(imgsJson, idx);
+
+      const card = document.getElementById(cardId);
+      if (card) {
+        const thumbs = card.querySelectorAll('.thumb-item');
+        thumbs.forEach((th, i) => {
+          if (i === idx) th.classList.add('active');
+          else th.classList.remove('active');
+        });
+      }
+    }
+
     function openModal() {
       const t = translations[currentLang];
       document.getElementById('carForm').reset();
       document.getElementById('carIndex').value = '-1';
-      document.getElementById('carImageData').value = '';
-      document.getElementById('imagePreviewBox').innerHTML = '<span style="font-size: 12px; color: #94a3b8;">لم يتم اختيار صورة بعد</span>';
+      document.getElementById('carStatus').value = 'available';
+      formImagesArray = [];
+      renderFormImagesPreview();
       document.getElementById('notesLivePreview').style.display = 'none';
       document.getElementById('modalTitle').innerText = t.modalAddTitle;
       document.getElementById('carDate').value = new Date().toISOString().split('T')[0];
@@ -1013,7 +1277,8 @@
         car_date: document.getElementById('carDate').value,
         car_price: Number(document.getElementById('carPrice').value) || 0,
         car_notes: document.getElementById('carNotes').value.trim(),
-        car_image: document.getElementById('carImageData').value
+        car_image: JSON.stringify(formImagesArray),
+        status: document.getElementById('carStatus').value
       };
 
       try {
@@ -1057,13 +1322,19 @@
       document.getElementById('carDate').value = car.car_date || '';
       document.getElementById('carPrice').value = car.car_price || '';
       document.getElementById('carNotes').value = car.car_notes || '';
-      document.getElementById('carImageData').value = car.car_image || '';
+      document.getElementById('carStatus').value = car.status || 'available';
 
-      if (car.car_image) {
-        document.getElementById('imagePreviewBox').innerHTML = `<img src="${car.car_image}" alt="معاينة" />`;
-      } else {
-        document.getElementById('imagePreviewBox').innerHTML = '<span style="font-size: 12px; color: #94a3b8;">لا توجد صورة حالية</span>';
+      formImagesArray = [];
+      try {
+        if (car.car_image && car.car_image.startsWith('[')) {
+          formImagesArray = JSON.parse(car.car_image);
+        } else if (car.car_image) {
+          formImagesArray = [car.car_image];
+        }
+      } catch (e) {
+        formImagesArray = car.car_image ? [car.car_image] : [];
       }
+      renderFormImagesPreview();
 
       updateNotesLivePreview();
       document.getElementById('modalTitle').innerText = translations[currentLang].modalEditTitle;
@@ -1203,6 +1474,10 @@
       csvContent += 'رقم اللوحة,اسم السيارة,الموديل,سنة الصنع,رقم الشاصي,اللون,تاريخ التسجيل,السعر,الحالة,ملاحظات\n';
 
       loadedCarsList.forEach(c => {
+        let statusTxt = 'متوفرة للبيع';
+        if (c.status === 'sold') statusTxt = 'تم البيع بنجاح';
+        if (c.status === 'reserved') statusTxt = 'محجوزة';
+
         const row = [
           `"${autoTranslate(c.plate_number, currentLang)}"`,
           `"${autoTranslate(c.car_name, currentLang)}"`,
@@ -1212,7 +1487,7 @@
           `"${autoTranslate(c.car_color, currentLang)}"`,
           `"${c.car_date || ''}"`,
           `"${c.car_price || ''}"`,
-          `"${c.status === 'sold' ? 'مباعة' : 'متاحة'}"`,
+          `"${statusTxt}"`,
           `"${autoTranslate(c.car_notes || '', currentLang).replace(/"/g, '""')}"`
         ];
         csvContent += row.join(',') + '\n';
