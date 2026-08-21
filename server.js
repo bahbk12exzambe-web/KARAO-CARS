@@ -6,22 +6,18 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// السماح برفع الصور بحجم مناسب
 app.use(cors());
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ limit: '15mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
-// قاعدة البيانات SQLite
 const db = new sqlite3.Database('./cars_database.sqlite', (err) => {
   if (!err) console.log('✅ تم الاتصال بقاعدة البيانات بنجاح.');
 });
 
-// إنشاء الجداول
 db.serialize(() => {
-  // جدول حساب المدير
   db.run(`
     CREATE TABLE IF NOT EXISTS admin_users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +33,6 @@ db.serialize(() => {
     }
   });
 
-  // جدول السيارات مع حقل الصورة car_image
   db.run(`
     CREATE TABLE IF NOT EXISTS cars (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,10 +51,9 @@ db.serialize(() => {
     )
   `);
 
-  // التأكد من وجود عمود الصورة للبيانات السابقة
   db.run(`ALTER TABLE cars ADD COLUMN car_image TEXT`, (err) => {});
+  db.run(`ALTER TABLE cars ADD COLUMN status TEXT DEFAULT 'available'`, (err) => {});
 
-  // جدول الفواتير
   db.run(`
     CREATE TABLE IF NOT EXISTS invoices (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,7 +70,6 @@ db.serialize(() => {
   `);
 });
 
-// وسيط حماية العمليات للمدير
 function requireAdminAuth(req, res, next) {
   const authHeader = req.headers['x-admin-token'];
   if (!authHeader) {
@@ -92,7 +85,6 @@ function requireAdminAuth(req, res, next) {
   });
 }
 
-// تسجيل دخول المدير
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   db.get(`SELECT * FROM admin_users WHERE LOWER(email) = LOWER(?) AND password = ?`, [email.trim(), password.trim()], (err, user) => {
@@ -103,7 +95,6 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
-// تعديل بيانات حساب المدير
 app.put('/api/auth/update-account', requireAdminAuth, (req, res) => {
   const { newEmail, oldPassword, newPassword } = req.body;
   if (oldPassword !== req.admin.password) {
@@ -123,25 +114,23 @@ app.put('/api/auth/update-account', requireAdminAuth, (req, res) => {
   );
 });
 
-// جلب السيارات
 app.get('/api/cars', (req, res) => {
-  const { search } = req.query;
-  let query = `SELECT * FROM cars ORDER BY id DESC`;
+  const { search, status } = req.query;
+  let query = `SELECT * FROM cars WHERE 1=1`;
   let params = [];
 
-  if (search) {
-    query = `
-      SELECT * FROM cars 
-      WHERE plate_number LIKE ? 
-         OR car_name LIKE ? 
-         OR car_model LIKE ? 
-         OR chassis_number LIKE ? 
-         OR car_notes LIKE ?
-      ORDER BY id DESC
-    `;
-    const s = `%${search}%`;
-    params = [s, s, s, s, s];
+  if (status && status !== 'all') {
+    query += ` AND status = ?`;
+    params.push(status);
   }
+
+  if (search) {
+    query += ` AND (plate_number LIKE ? OR car_name LIKE ? OR car_model LIKE ? OR chassis_number LIKE ? OR car_notes LIKE ?)`;
+    const s = `%${search}%`;
+    params.push(s, s, s, s, s);
+  }
+
+  query += ` ORDER BY id DESC`;
 
   db.all(query, params, (err, rows) => {
     if (err) return res.status(500).json({ error: 'فشل في جلب البيانات' });
@@ -149,20 +138,18 @@ app.get('/api/cars', (req, res) => {
   });
 });
 
-// إضافة سيارة مع الصورة
 app.post('/api/cars', requireAdminAuth, (req, res) => {
-  const { plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes, car_image } = req.body;
+  const { plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes, car_image, status } = req.body;
   const query = `
-    INSERT INTO cars (plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes, car_image)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO cars (plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes, car_image, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
-  db.run(query, [plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price || 0, car_date, car_notes, car_image || null], function(err) {
+  db.run(query, [plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price || 0, car_date, car_notes, car_image || null, status || 'available'], function(err) {
     if (err) return res.status(500).json({ error: 'فشل في الحفظ' });
     res.json({ message: 'تم الحفظ بنجاح', id: this.lastID });
   });
 });
 
-// تعديل سيارة مع الصورة
 app.put('/api/cars/:id', requireAdminAuth, (req, res) => {
   const { id } = req.params;
   const { plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes, car_image, status } = req.body;
@@ -177,7 +164,6 @@ app.put('/api/cars/:id', requireAdminAuth, (req, res) => {
   });
 });
 
-// حذف سيارة
 app.delete('/api/cars/:id', requireAdminAuth, (req, res) => {
   const { id } = req.params;
   db.run(`DELETE FROM cars WHERE id = ?`, [id], function(err) {
@@ -186,7 +172,6 @@ app.delete('/api/cars/:id', requireAdminAuth, (req, res) => {
   });
 });
 
-// الفواتير
 app.post('/api/invoices', requireAdminAuth, (req, res) => {
   const { invoice_no, type, car_id, client_name, client_phone, total_price, payment_method } = req.body;
   const query = `
@@ -202,13 +187,13 @@ app.post('/api/invoices', requireAdminAuth, (req, res) => {
   });
 });
 
-// الإحصائيات
 app.get('/api/stats', (req, res) => {
   db.get(`
     SELECT 
       COUNT(*) as total_cars,
       SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available_cars,
       SUM(CASE WHEN status = 'sold' THEN 1 ELSE 0 END) as sold_cars,
+      SUM(CASE WHEN status = 'reserved' THEN 1 ELSE 0 END) as reserved_cars,
       SUM(car_price) as total_value
     FROM cars
   `, [], (err, row) => {
