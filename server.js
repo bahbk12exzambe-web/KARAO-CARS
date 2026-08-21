@@ -6,6 +6,13 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// =========================================================================
+// 🔑 ضع بريدك الإلكتروني وكلمة المرور الدائمة هنا (لن تتغير أبدًا بعد الآن)
+// =========================================================================
+const MY_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sayedahmed12exzambe@gmail.com'; // 👈 استبدله ببريدك
+const MY_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'sN0997004801';          // 👈 استبدلها بكلمة سرك
+// =========================================================================
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -18,6 +25,7 @@ const db = new sqlite3.Database('./cars_database.sqlite', (err) => {
 });
 
 db.serialize(() => {
+  // جدول المدير
   db.run(`
     CREATE TABLE IF NOT EXISTS admin_users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,12 +35,14 @@ db.serialize(() => {
     )
   `);
 
-  db.get(`SELECT * FROM admin_users WHERE id = 1`, (err, row) => {
-    if (!row) {
-      db.run(`INSERT INTO admin_users (email, password) VALUES ('admin@karao.com', 'admin123')`);
-    }
-  });
+  // تثبيت حسابك الأساسي الدائم
+  db.run(
+    `INSERT INTO admin_users (id, email, password) VALUES (1, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET email = excluded.email, password = excluded.password`,
+    [MY_ADMIN_EMAIL.toLowerCase().trim(), MY_ADMIN_PASSWORD.trim()]
+  );
 
+  // جدول السيارات
   db.run(`
     CREATE TABLE IF NOT EXISTS cars (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,6 +64,7 @@ db.serialize(() => {
   db.run(`ALTER TABLE cars ADD COLUMN car_image TEXT`, (err) => {});
   db.run(`ALTER TABLE cars ADD COLUMN status TEXT DEFAULT 'available'`, (err) => {});
 
+  // جدول الفواتير
   db.run(`
     CREATE TABLE IF NOT EXISTS invoices (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,6 +81,7 @@ db.serialize(() => {
   `);
 });
 
+// وسيط حماية العمليات للمدير
 function requireAdminAuth(req, res, next) {
   const authHeader = req.headers['x-admin-token'];
   if (!authHeader) {
@@ -85,6 +97,7 @@ function requireAdminAuth(req, res, next) {
   });
 }
 
+// تسجيل الدخول
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   db.get(`SELECT * FROM admin_users WHERE LOWER(email) = LOWER(?) AND password = ?`, [email.trim(), password.trim()], (err, user) => {
@@ -95,6 +108,7 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
+// تعديل بيانات الحساب
 app.put('/api/auth/update-account', requireAdminAuth, (req, res) => {
   const { newEmail, oldPassword, newPassword } = req.body;
   if (oldPassword !== req.admin.password) {
@@ -114,6 +128,7 @@ app.put('/api/auth/update-account', requireAdminAuth, (req, res) => {
   );
 });
 
+// جلب السيارات
 app.get('/api/cars', (req, res) => {
   const { search, status } = req.query;
   let query = `SELECT * FROM cars WHERE 1=1`;
@@ -138,6 +153,7 @@ app.get('/api/cars', (req, res) => {
   });
 });
 
+// إضافة وتعديل وحذف
 app.post('/api/cars', requireAdminAuth, (req, res) => {
   const { plate_number, car_name, car_model, car_year, chassis_number, car_color, car_price, car_date, car_notes, car_image, status } = req.body;
   const query = `
