@@ -6,9 +6,6 @@
   <meta name="theme-color" content="#1e3a8a" />
   <title id="pageTitle">شركة بشار فواز كرعو وشركاه</title>
 
-  <!-- مكتبة Google Sign-In الرسمية -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
   <style>
     :root {
       --primary: #2563eb;
@@ -43,11 +40,11 @@
     .lang-btn { padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; background: transparent; color: #475569; }
     .lang-btn.active { background: var(--primary); color: #ffffff; }
 
-    .btn-admin-auth { background: #0f172a; color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
+    .btn-admin-auth { background: #0f172a; color: white; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
     .btn-admin-auth.logged { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
 
-    .btn-change-pwd { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 11px; padding: 6px 10px; border-radius: 8px; font-weight: bold; display: none; }
-    body.is-admin .btn-change-pwd { display: inline-flex; }
+    .btn-account-settings { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-size: 11px; padding: 7px 10px; border-radius: 8px; font-weight: bold; display: none; }
+    body.is-admin .btn-account-settings { display: inline-flex; }
 
     .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
     .stat-box { background: #f8fafc; border: 1px solid var(--border); padding: 8px; border-radius: 8px; text-align: center; }
@@ -96,11 +93,6 @@
     .form-group select, .form-group input, .form-group textarea { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
     .live-translate-hint { font-size: 11px; color: var(--purple); background: #faf5ff; padding: 6px 8px; border-radius: 6px; margin-top: 4px; }
 
-    .divider-text { display: flex; align-items: center; text-align: center; margin: 12px 0; color: #94a3b8; font-size: 12px; }
-    .divider-text::before, .divider-text::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
-    .divider-text:not(:empty)::before { margin-left: .5em; }
-    .divider-text:not(:empty)::after { margin-right: .5em; }
-
     #invoicePrintArea { display: none; }
     @media print {
       body * { visibility: hidden; }
@@ -133,7 +125,7 @@
             <button class="lang-btn" id="btnLangKu" onclick="setLanguage('ku')">☀️ Kurdî</button>
           </div>
           <!-- أزرار الإدارة -->
-          <button id="btnChangePwd" class="btn-change-pwd" onclick="openChangePasswordModal()">⚙️ كلمة المرور</button>
+          <button id="btnAccountSettings" class="btn-account-settings" onclick="openAccountSettingsModal()">⚙️ تعديل الحساب</button>
           <button id="btnAdminAuth" class="btn-admin-auth" onclick="handleAdminAuthClick()">🔐 دخول الإدارة</button>
         </div>
       </div>
@@ -173,63 +165,56 @@
     <div id="emptyMessage" class="empty-state" style="display: none;"></div>
   </div>
 
-  <!-- نافذة تسجيل دخول الإدارة المزدوجة (Google + PIN) -->
+  <!-- نافذة تسجيل الدخول بالبريد الإلكتروني -->
   <div id="authModal" class="modal-overlay">
-    <div class="modal" style="max-width: 380px; text-align: center;">
+    <div class="modal" style="max-width: 380px;">
       <div class="modal-header">
-        <h2 style="font-size: 16px;">🔐 تسجيل دخول إدارة المعرض</h2>
+        <h2 style="font-size: 16px;">🔐 تسجيل الدخول بالبريد الإلكتروني</h2>
         <button class="btn-secondary" style="padding: 4px 10px;" onclick="closeAuthModal()">✕</button>
       </div>
       
-      <!-- تسجيل الدخول بحساب Google -->
-      <div style="margin: 15px 0; display: flex; justify-content: center;">
-        <div id="g_id_onload"
-             data-client_id="109734397348306224346-apps.googleusercontent.com"
-             data-callback="handleGoogleLoginCallback"
-             data-auto_prompt="false">
-        </div>
-        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
-      </div>
-
-      <div class="divider-text">أو باستخدام رمز المرور السري</div>
-      
-      <form onsubmit="submitAdminPassword(event)">
+      <form onsubmit="submitEmailLogin(event)">
         <div class="form-group">
-          <input type="password" id="adminPasswordInput" placeholder="رمز المرور (الافتراضي 2026)" style="text-align: center; font-size: 16px; font-weight: bold;" required />
+          <label>البريد الإلكتروني *</label>
+          <input type="email" id="loginEmail" placeholder="admin@karao.com" required />
         </div>
-        <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+        <div class="form-group">
+          <label>كلمة المرور *</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required />
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;">
           <button type="button" class="btn-secondary" onclick="closeAuthModal()">إلغاء</button>
-          <button type="submit" class="btn-primary">دخول بالرمز</button>
+          <button type="submit" class="btn-primary">دخول</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- نافذة تغيير كلمة المرور -->
-  <div id="changePwdModal" class="modal-overlay">
+  <!-- نافذة تعديل بيانات الحساب (البريد وكلمة المرور) -->
+  <div id="accountModal" class="modal-overlay">
     <div class="modal" style="max-width: 380px;">
       <div class="modal-header">
-        <h2 style="font-size: 16px;">⚙️ تعديل كلمة مرور الإدارة</h2>
-        <button class="btn-secondary" style="padding: 4px 10px;" onclick="closeChangePasswordModal()">✕</button>
+        <h2 style="font-size: 16px;">⚙️ تعديل بيانات حساب الإدارة</h2>
+        <button class="btn-secondary" style="padding: 4px 10px;" onclick="closeAccountModal()">✕</button>
       </div>
       
-      <form onsubmit="submitChangePassword(event)">
+      <form onsubmit="submitAccountUpdate(event)">
         <div class="form-group">
-          <label>كلمة المرور الحالية *</label>
-          <input type="password" id="oldPwdInput" placeholder="أدخل كلمة المرور الحالية" required />
+          <label>البريد الإلكتروني للإدارة *</label>
+          <input type="email" id="accEmailInput" required />
         </div>
         <div class="form-group">
-          <label>كلمة المرور الجديدة *</label>
-          <input type="password" id="newPwdInput" placeholder="أدخل كلمة المرور الجديدة" minlength="4" required />
+          <label>كلمة المرور الحالية للتأكيد *</label>
+          <input type="password" id="accOldPwdInput" placeholder="أدخل كلمة المرور الحالية" required />
         </div>
         <div class="form-group">
-          <label>تأكيد كلمة المرور الجديدة *</label>
-          <input type="password" id="confirmNewPwdInput" placeholder="أعد إدخال الجديدة للتأكيد" minlength="4" required />
+          <label>كلمة المرور الجديدة (اختياري)</label>
+          <input type="password" id="accNewPwdInput" placeholder="اتركها فارغة إذا لا تريد تغييرها" minlength="4" />
         </div>
 
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px;">
-          <button type="button" class="btn-secondary" onclick="closeChangePasswordModal()">إلغاء</button>
-          <button type="submit" class="btn-primary">💾 حفظ الكلمة الجديدة</button>
+          <button type="button" class="btn-secondary" onclick="closeAccountModal()">إلغاء</button>
+          <button type="submit" class="btn-primary">💾 حفظ التعديلات</button>
         </div>
       </form>
     </div>
@@ -578,11 +563,11 @@
 
   <script>
     const LANG_KEY = 'karao_cars_lang';
-    const AUTH_KEY = 'karao_admin_key';
+    const AUTH_KEY = 'karao_admin_email';
 
     let currentSelectedCar = null;
     let loadedCarsList = [];
-    let isAdminLoggedIn = !!localStorage.getItem(AUTH_KEY);
+    let loggedAdminEmail = localStorage.getItem(AUTH_KEY) || '';
 
     function populateYears() {
       const select = document.getElementById('carYear');
@@ -744,31 +729,32 @@
       renderCarsList(loadedCarsList);
     }
 
-    // ==================== [ الصلاحيات والأمان ] ==================== //
+    // ==================== [ الصلاحيات والمصادقة بالبريد الإلكتروني ] ==================== //
 
     function updateAdminUI() {
       const btn = document.getElementById('btnAdminAuth');
-      if (isAdminLoggedIn) {
+      if (loggedAdminEmail) {
         document.body.classList.add('is-admin');
-        btn.innerText = currentLang === 'ku' ? '🔓 Derketin (Logout)' : '🔓 خروج الإدارة';
+        btn.innerText = currentLang === 'ku' ? '🔓 Derketin' : '🔓 خروج الإدارة';
         btn.classList.add('logged');
       } else {
         document.body.classList.remove('is-admin');
-        btn.innerText = currentLang === 'ku' ? '🔐 Têketina Rêveberiyê' : '🔐 دخول الإدارة';
+        btn.innerText = currentLang === 'ku' ? '🔐 Têketin (Email)' : '🔐 دخول الإدارة';
         btn.classList.remove('logged');
       }
     }
 
     function handleAdminAuthClick() {
-      if (isAdminLoggedIn) {
+      if (loggedAdminEmail) {
         if (confirm(currentLang === 'ku' ? 'Tu dixwazî derkevî?' : 'هل ترغب في تسجيل خروج الإدارة والعودة لوضع الزوار؟')) {
           localStorage.removeItem(AUTH_KEY);
-          isAdminLoggedIn = false;
+          loggedAdminEmail = '';
           updateAdminUI();
           renderCarsList(loadedCarsList);
         }
       } else {
-        document.getElementById('adminPasswordInput').value = '';
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
         document.getElementById('authModal').classList.add('active');
       }
     }
@@ -777,97 +763,69 @@
       document.getElementById('authModal').classList.remove('active');
     }
 
-    async function submitAdminPassword(e) {
+    async function submitEmailLogin(e) {
       e.preventDefault();
-      const pwd = document.getElementById('adminPasswordInput').value.trim();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
 
       try {
-        const res = await fetch('/api/admin/verify', {
+        const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pwd })
+          body: JSON.stringify({ email, password })
         });
         const data = await res.json();
 
-        if (data.success) {
-          localStorage.setItem(AUTH_KEY, data.token || pwd);
-          isAdminLoggedIn = true;
+        if (res.ok && data.success) {
+          localStorage.setItem(AUTH_KEY, data.email);
+          loggedAdminEmail = data.email;
           closeAuthModal();
           updateAdminUI();
           renderCarsList(loadedCarsList);
-          alert('✅ مرحبًا بك! تم تسجيل دخول الإدارة بنجاح.');
+          alert(`✅ أهلاً بك! تم تسجيل دخول الإدارة بنجاح بالحساب (${data.email}).`);
         } else {
-          alert('❌ رمز المرور غير صحيح!');
+          alert(`❌ ${data.error || 'البريد أو كلمة المرور غير صحيحة!'}`);
         }
       } catch (err) {
-        alert('فشل الاتصال بالسيرفر للتحقق');
+        alert('فشل الاتصال بالسيرفر');
       }
     }
 
-    // معالجة تسجيل الدخول بحساب Google
-    async function handleGoogleLoginCallback(response) {
-      try {
-        const res = await fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential: response.credential })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          localStorage.setItem(AUTH_KEY, data.token);
-          isAdminLoggedIn = true;
-          closeAuthModal();
-          updateAdminUI();
-          renderCarsList(loadedCarsList);
-          alert(`✅ أهلاً بك يا ${data.user.name}! تم تسجيل دخول الإدارة عبر Google.`);
-        } else {
-          alert('❌ فشل تسجيل الدخول بحساب Google.');
-        }
-      } catch (err) {
-        alert('فشل الاتصال بخدمة Google');
-      }
+    function openAccountSettingsModal() {
+      document.getElementById('accEmailInput').value = loggedAdminEmail;
+      document.getElementById('accOldPwdInput').value = '';
+      document.getElementById('accNewPwdInput').value = '';
+      document.getElementById('accountModal').classList.add('active');
     }
 
-    function openChangePasswordModal() {
-      document.getElementById('oldPwdInput').value = '';
-      document.getElementById('newPwdInput').value = '';
-      document.getElementById('confirmNewPwdInput').value = '';
-      document.getElementById('changePwdModal').classList.add('active');
+    function closeAccountModal() {
+      document.getElementById('accountModal').classList.remove('active');
     }
 
-    function closeChangePasswordModal() {
-      document.getElementById('changePwdModal').classList.remove('active');
-    }
-
-    async function submitChangePassword(e) {
+    async function submitAccountUpdate(e) {
       e.preventDefault();
-      const oldPassword = document.getElementById('oldPwdInput').value.trim();
-      const newPassword = document.getElementById('newPwdInput').value.trim();
-      const confirmNewPwd = document.getElementById('confirmNewPwdInput').value.trim();
-
-      if (newPassword !== confirmNewPwd) {
-        alert('❌ كلمة المرور الجديدة وتأكيدها غير متطابقين!');
-        return;
-      }
+      const newEmail = document.getElementById('accEmailInput').value.trim();
+      const oldPassword = document.getElementById('accOldPwdInput').value.trim();
+      const newPassword = document.getElementById('accNewPwdInput').value.trim();
 
       try {
-        const res = await fetch('/api/admin/change-password', {
+        const res = await fetch('/api/auth/update-account', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            ...getAdminHeader()
+            'x-admin-token': loggedAdminEmail
           },
-          body: JSON.stringify({ oldPassword, newPassword })
+          body: JSON.stringify({ newEmail, oldPassword, newPassword })
         });
         const data = await res.json();
 
-        if (data.success) {
-          localStorage.setItem(AUTH_KEY, data.newKey || newPassword);
-          closeChangePasswordModal();
-          alert('✅ تم تغيير كلمة مرور الإدارة بنجاح في السيرفر السحابي!');
+        if (res.ok && data.success) {
+          localStorage.setItem(AUTH_KEY, data.newEmail);
+          loggedAdminEmail = data.newEmail;
+          closeAccountModal();
+          alert('✅ تم تحديث بيانات البريد الإلكتروني وكلمة المرور بنجاح في السيرفر!');
         } else {
-          alert(`❌ ${data.error || 'فشل في تغيير كلمة المرور'}`);
+          alert(`❌ ${data.error || 'فشل في تحديث الحساب'}`);
         }
       } catch (err) {
         alert('حدث خطأ في الاتصال بالسيرفر');
@@ -875,8 +833,7 @@
     }
 
     function getAdminHeader() {
-      const key = localStorage.getItem(AUTH_KEY) || '';
-      return { 'x-admin-key': key };
+      return { 'x-admin-token': loggedAdminEmail };
     }
 
     // ==================== [ جلب وعرض السيارات ] ==================== //
@@ -1024,7 +981,7 @@
           closeModal();
           loadOnlineCars();
         } else {
-          alert('فشل الحفظ: يرجى تسجيل دخول الإدارة أولاً!');
+          alert('فشل الحفظ: يرجى تسجيل الدخول بالبريد الإلكتروني للإدارة أولاً!');
         }
       } catch (err) {
         alert('حدث خطأ في الاتصال بالسيرفر!');
@@ -1066,7 +1023,7 @@
         if (res.ok) {
           loadOnlineCars();
         } else {
-          alert('غير مصرح لك بالحذف! يرجى تسجيل دخول الإدارة.');
+          alert('غير مصرح لك بالحذف! يرجى تسجيل الدخول بالبريد الإلكتروني.');
         }
       } catch (err) {
         alert('فشل في حذف السيارة!');
